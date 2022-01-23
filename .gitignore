@@ -1,0 +1,39 @@
+# C++ objects and libs
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.dll
+*.dylib
+
+.idea
+cmake-build-debug
+build-Firmware-ARM_Toolchain-Debug
+build-Firmware-Desktop_Qt_5_15_2_GCC_64bit-Debug
+test/build
+out
+
+#CMake gitignore
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+#Ignore build directory
+build/
+out/
+build_simulator/
+Firmware/build_firmware
+#ignore vs temp folders
+.vs/
+#Ignore kicad backups
+*.sch-bak
