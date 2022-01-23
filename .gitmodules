@@ -1,3 +1,6 @@
 [submodule "drogon"]
 	path = drogon
 	url = https://github.com/drogonframework/drogon
+[submodule "libiio"]
+	path = libiio
+	url = https://github.com/analogdevicesinc/libiio.git

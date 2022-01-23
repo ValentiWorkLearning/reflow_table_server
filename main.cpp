@@ -2,7 +2,8 @@
 using namespace drogon;
 
 #include <drogon/HttpSimpleController.h>
-using namespace drogon;
+#include "thermocouple_sysfs_impl.hpp"
+
 class JsonCtrl : public drogon::HttpSimpleController<JsonCtrl>
 {
   public:
@@ -10,6 +11,7 @@ class JsonCtrl : public drogon::HttpSimpleController<JsonCtrl>
     {
         Json::Value ret;
     ret["message"] = "Hello, World!";
+    ret["thermocouple_data"] = m_dataProvider.getRawData();
     auto resp = HttpResponse::newHttpJsonResponse(ret);
     callback(resp);
     }
@@ -17,13 +19,16 @@ class JsonCtrl : public drogon::HttpSimpleController<JsonCtrl>
     //list path definitions here;
     PATH_ADD("/json", Get);
     PATH_LIST_END
+
+    private:
+    Devices::Thermocouple::SysFsDataProvider m_dataProvider;
 };
 
 int main()
 {
     app().setLogPath("./")
          .setLogLevel(trantor::Logger::kWarn)
-         .addListener("0.0.0.0", 80)
+         .addListener("192.168.0.116", 80)
          .setThreadNum(16)
          .run();
 }

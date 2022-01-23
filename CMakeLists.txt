@@ -11,6 +11,7 @@ set(BUILD_BROTLI OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CROSSCOMPILING TRUE)
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
@@ -28,21 +29,33 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_cmake_configure(REQUIRES
                       jsoncpp/1.9.5
                       zlib/1.2.11
+                      fmt/8.0.1
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
+                      OPTIONS fmt:header_only=True
                       )
 
 conan_cmake_autodetect(settings)
 
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
+                    PROFILE orange_zero_profile
                     REMOTE conancenter
                     SETTINGS ${settings})
 
-find_package(Jsoncpp REQUIRED)
-find_package(zlib REQUIRED)
+find_package(jsoncpp REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(fmt REQUIRED)
+
 add_subdirectory(drogon)
 
-add_executable(drogon_test_app main.cpp)
-target_link_libraries(drogon_test_app PUBLIC drogon)
+add_executable(app_test_drogon_server main.cpp)
+
+target_include_directories(
+  app_test_drogon_server
+  PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/devices_layer
+)
+target_link_libraries(app_test_drogon_server PRIVATE drogon fmt::fmt)
