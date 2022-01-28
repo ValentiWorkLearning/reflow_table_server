@@ -30,23 +30,26 @@ conan_cmake_configure(REQUIRES
                       jsoncpp/1.9.5
                       zlib/1.2.11
                       fmt/8.0.1
+                      spdlog/1.9.2
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
                       OPTIONS fmt:header_only=True
+                              spdlog:header_only=True
                       )
 
 conan_cmake_autodetect(settings)
 
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
-                    PROFILE orange_zero_profile
+                    PROFILE ${CMAKE_CURRENT_LIST_DIR}/orange_zero_profile
                     REMOTE conancenter
                     SETTINGS ${settings})
 
 find_package(jsoncpp REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
 
 add_subdirectory(drogon)
 
@@ -58,4 +61,4 @@ target_include_directories(
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/devices_layer
 )
-target_link_libraries(app_test_drogon_server PRIVATE drogon fmt::fmt)
+target_link_libraries(app_test_drogon_server PRIVATE drogon fmt::fmt spdlog::spdlog)

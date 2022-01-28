@@ -18,7 +18,7 @@ struct FileRaiiGuard {
             throw std::runtime_error(
                         fmt::format("Bad file path for the FileRaiiGuard, path:{}", filePath));
         }
-        m_fileHandle = open(filePath.data(), O_WRONLY);
+        m_fileHandle = open(filePath.data(), O_RDONLY);
 
         if (m_fileHandle == kInvalidFileHandle) {
             throw std::runtime_error(

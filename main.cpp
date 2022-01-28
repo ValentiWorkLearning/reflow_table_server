@@ -3,6 +3,8 @@ using namespace drogon;
 
 #include <drogon/HttpSimpleController.h>
 #include "thermocouple_sysfs_impl.hpp"
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 class JsonCtrl : public drogon::HttpSimpleController<JsonCtrl>
 {
@@ -10,10 +12,11 @@ class JsonCtrl : public drogon::HttpSimpleController<JsonCtrl>
     virtual void asyncHandleHttpRequest(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) override
     {
         Json::Value ret;
-    ret["message"] = "Hello, World!";
-    ret["thermocouple_data"] = m_dataProvider.getRawData();
-    auto resp = HttpResponse::newHttpJsonResponse(ret);
-    callback(resp);
+        ret["message"] = "Hello, World!";
+        ret["thermocouple_data"] = m_dataProvider.getRawData();
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        spdlog::info("Handlded get request to json!");
+        callback(resp);
     }
     PATH_LIST_BEGIN
     //list path definitions here;
@@ -28,7 +31,7 @@ int main()
 {
     app().setLogPath("./")
          .setLogLevel(trantor::Logger::kWarn)
-         .addListener("192.168.0.116", 80)
+         .addListener("192.168.0.116", 8080)
          .setThreadNum(16)
          .run();
 }
