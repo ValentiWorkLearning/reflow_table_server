@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project (drogon_test)
+project (drogon_test C CXX ASM)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(BUILD_POSTGRESQL OFF)
@@ -12,6 +12,8 @@ set(BUILD_BROTLI OFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CROSSCOMPILING TRUE)
+
+option(CROSS_BUILD_FOR_ARM OFF)
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
@@ -40,11 +42,19 @@ conan_cmake_configure(REQUIRES
 
 conan_cmake_autodetect(settings)
 
+if(CROSS_BUILD_FOR_ARM)
+
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
                     PROFILE ${CMAKE_CURRENT_LIST_DIR}/orange_zero_profile
                     REMOTE conancenter
                     SETTINGS ${settings})
+else()
+conan_cmake_install(PATH_OR_REFERENCE .
+                    BUILD missing
+                    REMOTE conancenter
+                    SETTINGS ${settings})
+endif()
 
 find_package(jsoncpp REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -52,6 +62,9 @@ find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 
 add_subdirectory(drogon)
+add_subdirectory(platform)
+add_subdirectory(devices_layer)
+add_subdirectory(http_requests_handler)
 
 add_executable(app_test_drogon_server main.cpp)
 
@@ -61,4 +74,4 @@ target_include_directories(
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/devices_layer
 )
-target_link_libraries(app_test_drogon_server PRIVATE drogon fmt::fmt spdlog::spdlog)
+target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler drogon)
