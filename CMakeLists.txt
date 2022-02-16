@@ -33,6 +33,7 @@ conan_cmake_configure(REQUIRES
                       zlib/1.2.11
                       fmt/8.0.1
                       spdlog/1.9.2
+                      gtest/1.11.0
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
@@ -65,6 +66,7 @@ add_subdirectory(drogon)
 add_subdirectory(platform)
 add_subdirectory(devices_layer)
 add_subdirectory(http_requests_handler)
+add_subdirectory(presets)
 
 add_executable(app_test_drogon_server main.cpp)
 
@@ -83,3 +85,6 @@ add_custom_command(
     ${CMAKE_CURRENT_LIST_DIR}/configs/config.json
     ${CMAKE_CURRENT_BINARY_DIR}/config.json
 )
+
+enable_testing()
+add_subdirectory(tests)
