@@ -75,3 +75,11 @@ target_include_directories(
   ${CMAKE_CURRENT_LIST_DIR}/devices_layer
 )
 target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler drogon)
+
+add_custom_command(
+    TARGET app_test_drogon_server 
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_LIST_DIR}/configs/config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/config.json
+)

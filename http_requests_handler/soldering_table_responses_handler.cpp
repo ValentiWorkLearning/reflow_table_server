@@ -6,7 +6,7 @@
 namespace api::v1
 {
 
-class RewflowController::ReflowControllerImpl
+class ReflowController::ReflowControllerImpl
 {
 public:
     void PingPong(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
@@ -22,40 +22,40 @@ private:
     Platform::ThermocoupleDataProvider m_thermocoupleDataProvider;
 };
 
-RewflowController::RewflowController() : m_pControllerImpl{std::make_unique<ReflowControllerImpl>()}
+ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<ReflowControllerImpl>()}
 {
 }
 
-RewflowController::~RewflowController() = default;
+ReflowController::~ReflowController() = default;
 
-void RewflowController::GetPreset(
-    const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
-{
-}
-
-void RewflowController::CreatePreset(
+void ReflowController::GetPreset(
     const HttpRequestPtr& req,
     std::function<void(const HttpResponsePtr&)>&& callback)
 {
 }
 
-void RewflowController::UpdatePreset(
+void ReflowController::CreatePreset(
     const HttpRequestPtr& req,
     std::function<void(const HttpResponsePtr&)>&& callback)
 {
 }
-void RewflowController::GetStats(
+
+void ReflowController::UpdatePreset(
     const HttpRequestPtr& req,
     std::function<void(const HttpResponsePtr&)>&& callback)
 {
 }
-void RewflowController::PushCommand(
+void ReflowController::GetStats(
     const HttpRequestPtr& req,
     std::function<void(const HttpResponsePtr&)>&& callback)
 {
 }
-void RewflowController::PingPong(
+void ReflowController::PushCommand(
+    const HttpRequestPtr& req,
+    std::function<void(const HttpResponsePtr&)>&& callback)
+{
+}
+void ReflowController::PingPong(
     const HttpRequestPtr& req,
     std::function<void(const HttpResponsePtr&)>&& callback)
 {

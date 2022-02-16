@@ -6,21 +6,21 @@ using namespace drogon;
 
 namespace api::v1
 {
-class RewflowController : public drogon::HttpController<RewflowController>
+class ReflowController : public drogon::HttpController<ReflowController,false>
 {
 
 public:
-    RewflowController();
-    ~RewflowController();
+    ReflowController();
+    ~ReflowController();
 
 public:
     METHOD_LIST_BEGIN
-    METHOD_ADD(RewflowController::CreatePreset, "/preset", Post);
-    METHOD_ADD(RewflowController::GetPreset, "/preset/{id}", Post);
-    METHOD_ADD(RewflowController::UpdatePreset, "/preset/{id}", Put);
-    METHOD_ADD(RewflowController::GetStats, "/telemetry", Get);
-    METHOD_ADD(RewflowController::PushCommand, "/command", Post);
-    METHOD_ADD(RewflowController::PingPong, "/ping-pong", Get);
+    METHOD_ADD(ReflowController::CreatePreset, "/preset", Post);
+    METHOD_ADD(ReflowController::GetPreset, "/preset/{id}", Get);
+    METHOD_ADD(ReflowController::UpdatePreset, "/preset/{id}", Put);
+    METHOD_ADD(ReflowController::GetStats, "/telemetry", Get);
+    METHOD_ADD(ReflowController::PushCommand, "/command", Post);
+    METHOD_ADD(ReflowController::PingPong, "/ping-pong", Get);
     METHOD_LIST_END
 
 protected:
