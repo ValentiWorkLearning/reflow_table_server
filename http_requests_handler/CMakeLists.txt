@@ -8,6 +8,7 @@ target_link_libraries(
 	reflow_requests_handler
 	PRIVATE
 	devices_layer
+	presets_manager
 	PRIVATE
 	drogon
 	fmt::fmt

@@ -1,6 +1,7 @@
 #include "soldering_table_responses_handler.hpp"
 #include <fmt/format.h>
 #include <platform_devices/platform_device_usings.hpp>
+#include <presets/presets_holder.hpp>
 #include <spdlog/spdlog.h>
 
 namespace api::v1
@@ -20,19 +21,26 @@ public:
 
     void CreatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback)
+        std::function<void(const HttpResponsePtr&)>&& callback,
+        const std::string& presetName)
     {
+        Json::Value ret;
+        ret["preset-id"] = m_presetsHolder->addNewPreset(presetName.c_str());
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        callback(resp);
     }
 
     void GetPreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback)
+        std::function<void(const HttpResponsePtr&)>&& callback,
+        const std::string& presetId)
     {
     }
 
     void UpdatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback)
+        std::function<void(const HttpResponsePtr&)>&& callback,
+        const std::string& presetId)
     {
     }
 
@@ -52,6 +60,7 @@ public:
 
 private:
     Platform::ThermocoupleDataProvider m_thermocoupleDataProvider;
+    Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
 };
 
 ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<ReflowControllerImpl>()}
@@ -62,26 +71,29 @@ ReflowController::~ReflowController() = default;
 
 void ReflowController::GetPreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    std::function<void(const HttpResponsePtr&)>&& callback,
+    const std::string& presetId)
 {
     m_pControllerImpl->GetPreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback), presetId);
 }
 
 void ReflowController::CreatePreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    std::function<void(const HttpResponsePtr&)>&& callback,
+    const std::string& presetName)
 {
     m_pControllerImpl->CreatePreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback), presetName);
 }
 
 void ReflowController::UpdatePreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    std::function<void(const HttpResponsePtr&)>&& callback,
+    const std::string& presetId)
 {
     m_pControllerImpl->UpdatePreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback), presetId);
 }
 void ReflowController::GetStats(
     const HttpRequestPtr& req,

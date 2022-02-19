@@ -6,7 +6,7 @@ using namespace drogon;
 
 namespace api::v1
 {
-class ReflowController : public drogon::HttpController<ReflowController,false>
+class ReflowController : public drogon::HttpController<ReflowController, false>
 {
 
 public:
@@ -15,7 +15,7 @@ public:
 
 public:
     METHOD_LIST_BEGIN
-    METHOD_ADD(ReflowController::CreatePreset, "/preset", Post);
+    METHOD_ADD(ReflowController::CreatePreset, "/preset/{preset_name}", Post);
     METHOD_ADD(ReflowController::GetPreset, "/preset/{id}", Get);
     METHOD_ADD(ReflowController::UpdatePreset, "/preset/{id}", Put);
     METHOD_ADD(ReflowController::GetStats, "/telemetry", Get);
@@ -26,15 +26,18 @@ public:
 protected:
     void CreatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        std::function<void(const HttpResponsePtr&)>&& callback,
+        const std::string& presetName);
 
     void GetPreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        std::function<void(const HttpResponsePtr&)>&& callback,
+        const std::string& presetId);
 
     void UpdatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        std::function<void(const HttpResponsePtr&)>&& callback,
+        const std::string& presetId);
 
     void GetStats(
         const HttpRequestPtr& req,

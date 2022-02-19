@@ -6,10 +6,19 @@
 #include <string>
 #include <vector>
 
+#include <boost/intrusive_ptr.hpp>
+#include <boost/smart_ptr/intrusive_ref_counter.hpp>
+
 namespace Reflow::Presets
 {
-struct Preset
+class Preset : public boost::intrusive_ref_counter<Preset>
 {
+
+public:
+    explicit Preset(std::string_view presetName);
+
+public:
+    using Ptr = boost::intrusive_ptr<Preset>;
 
     struct StageItem
     {
@@ -17,16 +26,35 @@ struct Preset
         std::chrono::seconds stageDuration;
     };
 
+public:
+    const std::string& presetName() const;
+    void addStageItem(StageItem&& stageItem);
+
+private:
+private:
     using TItemsStorage = std::vector<StageItem>;
-    TItemsStorage presetItems;
+    std::string m_presetName;
+    TItemsStorage m_presetItems;
 };
-class PresetsHolder
+
+class PresetsHolder : public boost::intrusive_ref_counter<PresetsHolder>
 {
+public:
+    using Ptr = boost::intrusive_ptr<PresetsHolder>;
+
 public:
     bool isEmpty() const;
 
+    std::size_t addNewPreset(std::string_view presetName);
+
+    std::size_t presetsCount() const;
+
+    Preset::Ptr getPresetById(std::size_t presetId);
+
+    const Preset::Ptr getPresetById(std::size_t presetId) const;
+
 private:
-    using TPresetsStorage = std::map<std::string, Preset>;
+    using TPresetsStorage = std::map<std::size_t, Preset::Ptr>;
 
     TPresetsStorage m_presetsStorage;
 };

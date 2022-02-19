@@ -34,11 +34,13 @@ conan_cmake_configure(REQUIRES
                       fmt/8.0.1
                       spdlog/1.9.2
                       gtest/1.11.0
+                      boost/1.78.0
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
                       OPTIONS fmt:header_only=True
                               spdlog:header_only=True
+                              boost:header_only=True
                       )
 
 conan_cmake_autodetect(settings)
@@ -61,6 +63,7 @@ find_package(jsoncpp REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(Boost REQUIRED)
 
 add_subdirectory(drogon)
 add_subdirectory(platform)
