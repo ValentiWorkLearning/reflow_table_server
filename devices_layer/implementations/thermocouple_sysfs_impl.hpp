@@ -1,6 +1,6 @@
 #pragma once
 
-#include #include<device_includes/ih_thermocouple_data_provider.hpp>
+#include <device_includes/ih_thermocouple_data_provider.hpp>
 #include <charconv>
 #include <exception>
 #include <file_raii_guard.hpp>

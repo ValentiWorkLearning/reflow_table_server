@@ -1,1 +1,1 @@
-#include "commands_parser/inc/commands/commands_parser.hpp"
+#include <commands/commands_parser.hpp>

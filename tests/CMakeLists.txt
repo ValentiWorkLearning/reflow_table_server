@@ -37,5 +37,6 @@ target_compile_features(
     PUBLIC
     cxx_std_20
 )
-
-gtest_discover_tests(${PROJECT_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+if(NOT CROSS_BUILD_FOR_ARM)
+    gtest_discover_tests(${PROJECT_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endif()

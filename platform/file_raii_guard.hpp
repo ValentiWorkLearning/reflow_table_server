@@ -49,7 +49,7 @@ public:
         auto retCode = read(m_fileHandle,readTo.data(),readTo.size());
         if(retCode == kDefErrorCode)
             throw std::runtime_error(fmt::format("READ from file failed with code:{}", retCode));
-        
+        lseek(m_fileHandle,0,SEEK_SET);
         return retCode;
     }
 

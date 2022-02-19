@@ -83,6 +83,10 @@ target_include_directories(
 )
 target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler drogon)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR  CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options( app_test_drogon_server PUBLIC -g2 )
+endif()
+
 add_custom_command(
     TARGET app_test_drogon_server 
     POST_BUILD
@@ -93,8 +97,3 @@ add_custom_command(
 
 enable_testing()
 add_subdirectory(tests)
-target_link_libraries(app_test_drogon_server PRIVATE drogon fmt::fmt spdlog::spdlog)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR  CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  target_compile_options( app_test_drogon_server PUBLIC -g2 )
-endif()
