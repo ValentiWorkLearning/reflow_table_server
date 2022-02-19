@@ -9,11 +9,14 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 enable_testing()
+
 find_package(GTest REQUIRED)
+find_package(Boost REQUIRED)
 
 add_executable(
     ${PROJECT_NAME}
     presets_holder_tests/presets_test_suite.cpp
+    iio_parser_tests/iio_parser_test.cpp
 )
 
 mark_as_advanced(
@@ -24,12 +27,15 @@ mark_as_advanced(
 
 target_link_libraries(
     ${PROJECT_NAME}
+    PRIVATE
+    presets_manager
+    platform
+    PRIVATE
     GTest::gtest
     GTest::gmock
     GTest::gtest_main
     GTest::gmock_main
-
-    presets_manager
+    Boost::boost
 )
 
 target_compile_features(

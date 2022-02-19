@@ -1,6 +1,7 @@
 #include <http_requests_handler/soldering_table_responses_handler.hpp>
 #include <drogon/drogon.h>
 #include <memory>
+
 using namespace drogon;
 
 void dumpAvailableEndpoints()
