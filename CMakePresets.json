@@ -17,6 +17,18 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
       },
       "vendor": { "microsoft.com/VisualStudioSettings/CMake/1.0": { "hostOS": [ "Windows" ] } }
-    }
+    },
+    {
+      "name": "buildroot_orange_pi_zero",
+      "displayName": "Orange Pi Zero buildroot custom toolchain",
+      "description": "Sets orangepi custom buiild toolchain",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_TOOLCHAIN_FILE": "/home/valenti/Development/Embedded/exercise8/build_orange_zero_image/host/share/buildroot/toolchainfile.cmake",
+          "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+      }
+  }
   ]
 }
