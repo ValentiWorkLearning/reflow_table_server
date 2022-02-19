@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -30,7 +31,9 @@ public:
     const std::string& presetName() const;
     void addStageItem(StageItem&& stageItem);
 
-private:
+    using TTraverseFunction = std::function<void(const StageItem&)>;
+    void forEachStage(TTraverseFunction traverser);
+
 private:
     using TItemsStorage = std::vector<StageItem>;
     std::string m_presetName;

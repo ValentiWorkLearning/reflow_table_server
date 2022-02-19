@@ -1,7 +1,10 @@
 #include "soldering_table_responses_handler.hpp"
+
+#include <commands/commands_parser.hpp>
 #include <fmt/format.h>
 #include <platform_devices/platform_device_usings.hpp>
 #include <presets/presets_holder.hpp>
+#include <reflow_controller/reflow_controller.hpp>
 #include <spdlog/spdlog.h>
 
 namespace api::v1
@@ -21,11 +24,10 @@ public:
 
     void CreatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback,
-        const std::string& presetName)
+        std::function<void(const HttpResponsePtr&)>&& callback)
     {
         Json::Value ret;
-        ret["preset-id"] = m_presetsHolder->addNewPreset(presetName.c_str());
+        ret["preset-id"] = m_presetsHolder->addNewPreset(req.get()->body());
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }
@@ -35,6 +37,24 @@ public:
         std::function<void(const HttpResponsePtr&)>&& callback,
         const std::string& presetId)
     {
+        if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>()(presetId));
+            presetPtr)
+        {
+            Json::Value ret;
+            ret["preset-name"] = presetPtr->presetName();
+
+            Json::Value stagesArray{Json::arrayValue};
+            presetPtr->forEachStage([&stagesArray](const auto& presetStage) {
+                Json::Value temperatureStamp;
+                temperatureStamp["temperature"] = presetStage.tempereatureStep;
+                temperatureStamp["stage-duration"] = fmt::format("{}", presetStage.stageDuration);
+                stagesArray.append(temperatureStamp);
+            });
+            ret["stages"] = stagesArray;
+
+            auto resp = HttpResponse::newHttpJsonResponse(ret);
+            callback(resp);
+        }
     }
 
     void UpdatePreset(
@@ -61,6 +81,8 @@ public:
 private:
     Platform::ThermocoupleDataProvider m_thermocoupleDataProvider;
     Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
+    Reflow::Commands::CommandsParser::Ptr m_commandsParser;
+    Reflow::Controller::ReflowProcessController::Ptr m_reflowController;
 };
 
 ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<ReflowControllerImpl>()}
@@ -80,11 +102,10 @@ void ReflowController::GetPreset(
 
 void ReflowController::CreatePreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback,
-    const std::string& presetName)
+    std::function<void(const HttpResponsePtr&)>&& callback)
 {
     m_pControllerImpl->CreatePreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback), presetName);
+        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
 }
 
 void ReflowController::UpdatePreset(

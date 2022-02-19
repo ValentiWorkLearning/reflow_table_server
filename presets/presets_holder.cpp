@@ -1,4 +1,5 @@
 #include "inc\presets\presets_holder.hpp"
+#include "inc\presets\presets_holder.hpp"
 #include "presets/presets_holder.hpp"
 #include <fmt/format.h>
 
@@ -14,6 +15,11 @@ const std::string& Preset::presetName() const
 void Preset::addStageItem(StageItem&& stageItem)
 {
     m_presetItems.push_back(stageItem);
+}
+void Preset::forEachStage(TTraverseFunction traverser)
+{
+    for (const auto& stageItem : m_presetItems)
+        traverser(stageItem);
 }
 bool PresetsHolder::isEmpty() const
 {

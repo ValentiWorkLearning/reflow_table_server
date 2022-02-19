@@ -9,6 +9,8 @@ target_link_libraries(
 	PRIVATE
 	devices_layer
 	presets_manager
+	commands_parser
+	reflow_controller
 	PRIVATE
 	drogon
 	fmt::fmt

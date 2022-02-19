@@ -26,8 +26,7 @@ public:
 protected:
     void CreatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback,
-        const std::string& presetName);
+        std::function<void(const HttpResponsePtr&)>&& callback);
 
     void GetPreset(
         const HttpRequestPtr& req,
