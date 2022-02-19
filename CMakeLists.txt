@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22)
 project (drogon_test C CXX ASM)
 
 set(CMAKE_BUILD_TYPE Debug)
+
+# DROGON OPTIONS
 set(BUILD_POSTGRESQL OFF)
 set(LIBPQ_BATCH_MODE OFF)
 set(BUILD_MYSQL OFF)
@@ -11,9 +13,22 @@ set(BUILD_BROTLI OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CROSSCOMPILING TRUE)
 
 option(CROSS_BUILD_FOR_ARM OFF)
+option(BUILD_WITH_IIO_SUPPORT OFF)
+
+if(CROSS_BUILD_FOR_ARM)
+    set(CMAKE_CROSSCOMPILING TRUE)
+    if(BUILD_WITH_IIO_SUPPORT)
+        #LIBIIO OPTIONS
+        set(WITH_AIO OFF)
+        set(HAVE_DNS_SD OFF)
+        set(WITH_USB_BACKEND OFF)
+        set(WITH_XML_BACKEND OFF)
+        set(WITH_SERIAL_BACKEND OFF)
+        set(WITH_NETWORK_BACKEND OFF)
+    endif()
+endif()
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
@@ -72,6 +87,10 @@ add_subdirectory(http_requests_handler)
 add_subdirectory(presets)
 add_subdirectory(commands_parser)
 add_subdirectory(reflow_controller)
+
+if(CROSS_BUILD_FOR_ARM AND BUILD_WITH_IIO_SUPPORT)
+    add_subdirectory(libiio)
+endif()
 
 add_executable(app_test_drogon_server main.cpp)
 

@@ -2,6 +2,7 @@
 
 #include <commands/commands_parser.hpp>
 #include <fmt/format.h>
+#include <fmt/chrono.h>
 #include <platform_devices/platform_device_usings.hpp>
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
