@@ -13,5 +13,5 @@ TEST_F(IioDataParser, DraftFormattingTest)
     auto result = m_formatParser->parseValue(kThermocoupleData);
 
     EXPECT_TRUE(result.has_value());
-    EXPECT_EQ(result.value(),"25");
+    EXPECT_EQ(result.value(),"21");
 }
