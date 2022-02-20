@@ -301,7 +301,7 @@ private:
         return std::nullopt;
     }
 
-    template<typename TConcreteEndianType, typename TNativeEndianType>
+    template<typename TConcreteEndianType, typename TNativeEndianType >
     std::optional<std::string> processConcreteTag(std::uint32_t value)
     {
 
