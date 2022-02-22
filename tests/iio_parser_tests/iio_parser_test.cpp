@@ -15,3 +15,12 @@ TEST_F(IioDataParser, DraftFormattingTest)
     EXPECT_TRUE(result.has_value());
     EXPECT_EQ(result.value(),"21");
 }
+
+TEST_F(IioDataParser, EmptyString)
+{
+    m_formatParser->setFormat("");
+
+    auto result = m_formatParser->parseValue(42);
+
+    EXPECT_FALSE(result.has_value());
+}

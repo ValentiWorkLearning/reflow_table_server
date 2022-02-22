@@ -88,9 +88,7 @@ private:
     template <> struct NativeEndian<SignedTag>
     {
         using TBits8 = boost::endian::native_int8_t;
-
         using TBits16 = boost::endian::native_int16_t;
-
         using TBits32 = boost::endian::native_int32_t;
     };
 
