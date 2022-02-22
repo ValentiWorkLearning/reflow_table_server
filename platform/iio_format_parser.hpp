@@ -73,6 +73,33 @@ private:
         Little
     };
 
+    template <typename Stub> struct NativeEndian
+    {
+    };
+
+    struct SignedTag
+    {
+    };
+
+    struct UnsignedTag
+    {
+    };
+
+    template <> struct NativeEndian<SignedTag>
+    {
+        using TBits8 = boost::endian::native_int8_t;
+
+        using TBits16 = boost::endian::native_int16_t;
+
+        using TBits32 = boost::endian::native_int32_t;
+    };
+
+    template <> struct NativeEndian<UnsignedTag>
+    {
+        using TBits8 = boost::endian::native_uint8_t;
+        using TBits16 = boost::endian::native_uint16_t;
+        using TBits32 = boost::endian::native_uint32_t;
+    };
     struct BigEndianTag
     {
         using TBits8 = boost::endian::big_int8_t;
@@ -95,34 +122,6 @@ private:
 
         using TBits32 = boost::endian::little_int32_t;
         using TUBits32 = boost::endian::little_uint32_t;
-    };
-
-    template <typename Stub> struct NativeEndian
-    {
-    };
-
-    struct SignedTag
-    {
-    };
-
-    struct UnsgnedTag
-    {
-    };
-
-    template <> struct NativeEndian<SignedTag>
-    {
-        using TBits8 = boost::endian::native_int8_t;
-
-        using TBits16 = boost::endian::native_int16_t;
-
-        using TBits32 = boost::endian::native_int32_t;
-    };
-
-    template <> struct NativeEndian<UnsgnedTag>
-    {
-        using TBits8 = boost::endian::native_uint8_t;
-        using TBits16 = boost::endian::native_uint16_t;
-        using TBits32 = boost::endian::native_uint32_t;
     };
 
     struct InternalFormatHolder
@@ -201,14 +200,9 @@ private:
             return std::nullopt;
 
         auto bitsSubstr = sourceString.substr(1, bitsSubstrIdx); // skip / from the previous stage
-        std::uint8_t result{};
-        auto [ptr, ec]{
-            std::from_chars(bitsSubstr.data(), bitsSubstr.data() + bitsSubstr.size(), result)};
-        if (ec != std::errc())
-            return std::nullopt;
-
         m_parserPosition += bitsSubstrIdx;
-        return result;
+
+        return extractValueFromSubstring(bitsSubstr);
     }
 
     std::optional<std::uint8_t> getBitshift(std::string_view sourceString)
@@ -223,12 +217,17 @@ private:
             return std::nullopt;
 
         auto expectedSubstr = sourceString.substr(pos);
+
+        return extractValueFromSubstring(expectedSubstr);
+    }
+
+    std::optional<std::uint8_t> extractValueFromSubstring(std::string_view substringPart)
+    {
         std::uint8_t result{};
         auto [ptr, ec]{std::from_chars(
-            expectedSubstr.data(), expectedSubstr.data() + expectedSubstr.size(), result)};
+            substringPart.data(), substringPart.data() + substringPart.size(), result)};
         if (ec != std::errc())
             return std::nullopt;
-
         return result;
     }
 
@@ -249,6 +248,7 @@ private:
             return processEndian<LittleEndianTag>(value);
             break;
         }
+        return std::nullopt;
     }
 
     template <typename EndianTag>
@@ -259,18 +259,19 @@ private:
             switch (m_formatHolder->totalBits)
             {
             case 8:
-                typename EndianTag::TBits8 bitValue8b{};
+                return processConcreteTag<
+                    typename EndianTag::TBits8,
+                    typename NativeEndian<SignedTag>::TBits8>(value);
                 break;
             case 16:
-                typename EndianTag::TBits16 bitValue16b{static_cast<EndianTag::TBits16>(value)};
-                bitValue16b &= createBitmask(m_formatHolder->valueBits);
-                bitValue16b = bitValue16b >> m_formatHolder->shift;
-
-                typename NativeEndian<SignedTag>::TBits16 native16b{bitValue16b};
-                return fmt::format("{}", native16b);
+                return processConcreteTag<
+                    typename EndianTag::TBits16,
+                    typename NativeEndian<SignedTag>::TBits16>(value);
                 break;
             case 32:
-                typename EndianTag::TBits32 bitValue32b{};
+                return processConcreteTag<
+                    typename EndianTag::TBits32,
+                    typename NativeEndian<SignedTag>::TBits32>(value);
                 break;
             default:
                 break;
@@ -281,17 +282,19 @@ private:
             switch (m_formatHolder->totalBits)
             {
             case 8:
-                typename EndianTag::TUBits8 bitValue8b{};
+                return processConcreteTag<
+                    typename EndianTag::TUBits8,
+                    typename NativeEndian<UnsignedTag>::TBits8>(value);
                 break;
             case 16:
-                typename EndianTag::TUBits16 bitValue16b{static_cast<EndianTag::TUBits16>(value)};
-                bitValue16b &= createBitmask(m_formatHolder->valueBits);
-                bitValue16b = bitValue16b >> m_formatHolder->shift;
-                boost::endian::native_uint16_t native16b{bitValue16b};
-                return fmt::format("{}", native16b);
+                return processConcreteTag<
+                    typename EndianTag::TUBits16,
+                    typename NativeEndian<UnsignedTag>::TBits16>(value);
                 break;
             case 32:
-                typename EndianTag::TUBits32 bitValue32b{};
+                return processConcreteTag<
+                    typename EndianTag::TUBits32,
+                    typename NativeEndian<UnsignedTag>::TBits32>(value);
                 break;
             default:
                 break;
@@ -301,10 +304,14 @@ private:
         return std::nullopt;
     }
 
-    template<typename TConcreteEndianType, typename TNativeEndianType >
-    std::optional<std::string> processConcreteTag(std::uint32_t value)
+    template <typename TConcreteEndianType, typename TNativeEndianType>
+    std::optional<std::string> processConcreteTag(std::uint32_t value) const
     {
-
+        TConcreteEndianType bitValue{static_cast<TConcreteEndianType>(value)};
+        bitValue &= createBitmask(m_formatHolder->valueBits);
+        bitValue = bitValue >> m_formatHolder->shift;
+        TNativeEndianType native{bitValue};
+        return fmt::format("{}", native);
     }
 
     constexpr std::uint32_t createBitmask(std::uint8_t valueBits) const
