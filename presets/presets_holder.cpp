@@ -1,5 +1,5 @@
-#include <presets/presets_holder.hpp>
 #include <fmt/format.h>
+#include <presets/presets_holder.hpp>
 
 namespace Reflow::Presets
 {
@@ -10,6 +10,12 @@ const std::string& Preset::presetName() const
 {
     return m_presetName;
 }
+
+void Preset::setName(std::string_view presetName)
+{
+    m_presetName = presetName;
+}
+
 void Preset::addStageItem(StageItem&& stageItem)
 {
     m_presetItems.push_back(std::move(stageItem));
@@ -17,7 +23,7 @@ void Preset::addStageItem(StageItem&& stageItem)
 
 void Preset::replaceStageItem(std::size_t stageItemIdx, StageItem&& stageItem)
 {
-    const bool hasToPush = m_presetItems.empty()? true:stageItemIdx > m_presetItems.size() - 1;
+    const bool hasToPush = m_presetItems.empty() ? true : stageItemIdx > m_presetItems.size() - 1;
     if (hasToPush)
     {
         m_presetItems.push_back(std::move(stageItem));
@@ -66,8 +72,13 @@ std::size_t PresetsHolder::presetsCount() const
 {
     return m_presetsStorage.size();
 }
-
-
+void PresetsHolder::forEachPreset(TEnumerateCallback callback)
+{
+    for (const auto& [presetHash, presetPtr] : m_presetsStorage)
+    {
+        callback(presetHash, presetPtr);
+    }
+}
 std::size_t Preset::numStages() const noexcept
 {
     return m_presetItems.size();

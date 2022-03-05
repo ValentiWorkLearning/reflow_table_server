@@ -50,6 +50,7 @@ conan_cmake_configure(REQUIRES
                       spdlog/1.9.2
                       gtest/1.11.0
                       boost/1.78.0
+                      nlohmann_json/3.10.5
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
@@ -79,6 +80,7 @@ find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Boost REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 add_subdirectory(drogon)
 add_subdirectory(platform)

@@ -2,7 +2,7 @@
 #include <drogon/drogon.h>
 using namespace drogon;
 
-#include <drogon/HttpSimpleController.h>
+#include <drogon/HttpController.h>
 
 namespace api::v1
 {
@@ -17,6 +17,7 @@ public:
     METHOD_LIST_BEGIN
     METHOD_ADD(ReflowController::CreatePreset, "/preset/{preset_name}", Post);
     METHOD_ADD(ReflowController::GetPreset, "/preset/{id}", Get);
+    METHOD_ADD(ReflowController::GetPresets, "/presets", Get);
     METHOD_ADD(ReflowController::UpdatePreset, "/preset/{id}", Put);
     METHOD_ADD(ReflowController::GetStats, "/telemetry", Get);
     METHOD_ADD(ReflowController::PushCommand, "/command", Post);
@@ -32,6 +33,10 @@ protected:
         const HttpRequestPtr& req,
         THttpResponseCallback&& callback,
         const std::string& presetId);
+
+    void GetPresets(
+        const HttpRequestPtr& req,
+        THttpResponseCallback&& callback);
 
     void UpdatePreset(
         const HttpRequestPtr& req,

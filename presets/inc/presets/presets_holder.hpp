@@ -34,6 +34,8 @@ public:
     };
 
 public:
+    void setName(std::string_view presetName);
+
     const std::string& presetName() const;
     void addStageItem(StageItem&& stageItem);
     void replaceStageItem(std::size_t stageItemIdx, StageItem&& stageItem);
@@ -66,6 +68,11 @@ public:
     Preset::Ptr getPresetById(std::size_t presetId);
 
     const Preset::Ptr getPresetById(std::size_t presetId) const;
+
+
+    using TEnumerateCallback = std::function<void(std::size_t,const Preset::Ptr&)>;
+
+    void forEachPreset(TEnumerateCallback callback);
 
 private:
     using TPresetsStorage = std::map<std::size_t, Preset::Ptr>;

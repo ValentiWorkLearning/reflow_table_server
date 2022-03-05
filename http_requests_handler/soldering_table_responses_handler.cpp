@@ -1,11 +1,14 @@
 #include "soldering_table_responses_handler.hpp"
 
+#include "request_utils.hpp"
 #include <commands/commands_parser.hpp>
-#include <fmt/format.h>
-#include <fmt/chrono.h>
 #include <platform_devices/platform_device_usings.hpp>
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
+
+#include <boost/range/counting_range.hpp>
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 namespace api::v1
@@ -23,9 +26,7 @@ public:
         callback(resp);
     }
 
-    void CreatePreset(
-        const HttpRequestPtr& req,
-        THttpResponseCallback&& callback)
+    void CreatePreset(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
         ret["preset-id"] = m_presetsHolder->addNewPreset(req.get()->body());
@@ -38,7 +39,7 @@ public:
         THttpResponseCallback&& callback,
         const std::string& presetId)
     {
-        if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>()(presetId));
+        if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>{}(presetId));
             presetPtr)
         {
             Json::Value ret;
@@ -58,11 +59,47 @@ public:
         }
     }
 
+    void GetPresets(const HttpRequestPtr& req, THttpResponseCallback&& callback)
+    {
+        Json::Value ret{Json::arrayValue};
+        m_presetsHolder->forEachPreset([&ret](auto presetHash, const auto& presetPtr) {
+            Json::Value presetObj;
+            presetObj["preset-id"] = presetHash;
+            presetObj["preset-name"] = presetPtr->presetName();
+            ret.append(presetObj);
+        });
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        callback(resp);
+    }
+
     void UpdatePreset(
         const HttpRequestPtr& req,
         THttpResponseCallback&& callback,
         const std::string& presetId)
     {
+        if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>{}(presetId));
+            presetPtr)
+        {
+            auto requestBody = req.get()->body();
+            auto parsedState = RequestUtils::parsePresetUpdateRequest(requestBody);
+
+            auto parseResult = Overload{
+                [&presetPtr](const std::string& itemName) { presetPtr->setName(itemName); },
+                [&presetPtr](RequestUtils::TStagesContainer& stagesContainer) {
+                    auto countedRange{
+                        boost::counting_range(std::size_t{}, stagesContainer.size() - 1)};
+
+                    for (auto stageItem : countedRange)
+                    {
+                        presetPtr->replaceStageItem(
+                            stageItem, std::move(stagesContainer.at(stageItem)));
+                    }
+                },
+                [&presetPtr](std::monostate mono) {}};
+
+            auto resp = HttpResponse::newHttpResponse();
+            callback(resp);
+        }
     }
 
     void GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
@@ -73,9 +110,7 @@ public:
         callback(resp);
     }
 
-    void PushCommand(
-        const HttpRequestPtr& req,
-        THttpResponseCallback&& callback)
+    void PushCommand(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
     }
 
@@ -97,16 +132,17 @@ void ReflowController::GetPreset(
     THttpResponseCallback&& callback,
     const std::string& presetId)
 {
-    m_pControllerImpl->GetPreset(
-        req, std::forward<THttpResponseCallback>(callback), presetId);
+    m_pControllerImpl->GetPreset(req, std::forward<THttpResponseCallback>(callback), presetId);
 }
 
-void ReflowController::CreatePreset(
-    const HttpRequestPtr& req,
-    THttpResponseCallback&& callback)
+void ReflowController::GetPresets(const HttpRequestPtr& req, THttpResponseCallback&& callback)
 {
-    m_pControllerImpl->CreatePreset(
-        req, std::forward<THttpResponseCallback>(callback));
+    m_pControllerImpl->GetPresets(req, std::forward<THttpResponseCallback>(callback));
+}
+
+void ReflowController::CreatePreset(const HttpRequestPtr& req, THttpResponseCallback&& callback)
+{
+    m_pControllerImpl->CreatePreset(req, std::forward<THttpResponseCallback>(callback));
 }
 
 void ReflowController::UpdatePreset(
@@ -114,29 +150,19 @@ void ReflowController::UpdatePreset(
     THttpResponseCallback&& callback,
     const std::string& presetId)
 {
-    m_pControllerImpl->UpdatePreset(
-        req, std::forward<THttpResponseCallback>(callback), presetId);
+    m_pControllerImpl->UpdatePreset(req, std::forward<THttpResponseCallback>(callback), presetId);
 }
-void ReflowController::GetStats(
-    const HttpRequestPtr& req,
-    THttpResponseCallback&& callback)
+void ReflowController::GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
 {
-    m_pControllerImpl->GetStats(
-        req, std::forward<THttpResponseCallback>(callback));
+    m_pControllerImpl->GetStats(req, std::forward<THttpResponseCallback>(callback));
 }
-void ReflowController::PushCommand(
-    const HttpRequestPtr& req,
-    THttpResponseCallback&& callback)
+void ReflowController::PushCommand(const HttpRequestPtr& req, THttpResponseCallback&& callback)
 {
-    m_pControllerImpl->PushCommand(
-        req, std::forward<THttpResponseCallback>(callback));
+    m_pControllerImpl->PushCommand(req, std::forward<THttpResponseCallback>(callback));
 }
-void ReflowController::PingPong(
-    const HttpRequestPtr& req,
-    THttpResponseCallback&& callback)
+void ReflowController::PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
 {
-    m_pControllerImpl->PingPong(
-        req, std::forward<THttpResponseCallback>(callback));
+    m_pControllerImpl->PingPong(req, std::forward<THttpResponseCallback>(callback));
 }
 
 } // namespace api::v1
