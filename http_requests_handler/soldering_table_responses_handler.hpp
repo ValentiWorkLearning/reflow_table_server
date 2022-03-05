@@ -24,31 +24,28 @@ public:
     METHOD_LIST_END
 
 protected:
+    using THttpResponseCallback = std::function<void(const HttpResponsePtr&)>;
     void CreatePreset(
-        const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        const HttpRequestPtr& req, THttpResponseCallback&& callback);
 
     void GetPreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback,
+        THttpResponseCallback&& callback,
         const std::string& presetId);
 
     void UpdatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback,
+        THttpResponseCallback&& callback,
         const std::string& presetId);
 
     void GetStats(
-        const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        const HttpRequestPtr& req, THttpResponseCallback&& callback);
 
     void PushCommand(
-        const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        const HttpRequestPtr& req, THttpResponseCallback&& callback);
 
     void PingPong(
-        const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback);
+        const HttpRequestPtr& req, THttpResponseCallback&& callback);
 
 private:
     class ReflowControllerImpl;

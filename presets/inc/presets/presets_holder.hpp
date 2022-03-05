@@ -23,16 +23,27 @@ public:
 
     struct StageItem
     {
-        std::uint32_t tempereatureStep;
+        std::uint32_t temperatureStep;
         std::chrono::seconds stageDuration;
+
+        bool operator==(const StageItem& other) const noexcept
+        {
+            return temperatureStep == other.temperatureStep &&
+                   stageDuration == other.stageDuration;
+        }
     };
 
 public:
     const std::string& presetName() const;
     void addStageItem(StageItem&& stageItem);
+    void replaceStageItem(std::size_t stageItemIdx, StageItem&& stageItem);
 
     using TTraverseFunction = std::function<void(const StageItem&)>;
     void forEachStage(TTraverseFunction traverser);
+
+    std::size_t numStages() const noexcept;
+
+    const StageItem& getStageItem(std::size_t stageItemIdx);
 
 private:
     using TItemsStorage = std::vector<StageItem>;

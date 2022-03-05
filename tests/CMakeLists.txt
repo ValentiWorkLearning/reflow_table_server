@@ -25,6 +25,12 @@ mark_as_advanced(
     gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
 )
 
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/testing_common
+)
+
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE

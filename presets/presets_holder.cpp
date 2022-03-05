@@ -12,8 +12,22 @@ const std::string& Preset::presetName() const
 }
 void Preset::addStageItem(StageItem&& stageItem)
 {
-    m_presetItems.push_back(stageItem);
+    m_presetItems.push_back(std::move(stageItem));
 }
+
+void Preset::replaceStageItem(std::size_t stageItemIdx, StageItem&& stageItem)
+{
+    const bool hasToPush = m_presetItems.empty()? true:stageItemIdx > m_presetItems.size() - 1;
+    if (hasToPush)
+    {
+        m_presetItems.push_back(std::move(stageItem));
+    }
+    else
+    {
+        m_presetItems.at(stageItemIdx) = std::move(stageItem);
+    }
+}
+
 void Preset::forEachStage(TTraverseFunction traverser)
 {
     for (const auto& stageItem : m_presetItems)
@@ -52,4 +66,16 @@ std::size_t PresetsHolder::presetsCount() const
 {
     return m_presetsStorage.size();
 }
+
+
+std::size_t Preset::numStages() const noexcept
+{
+    return m_presetItems.size();
+}
+
+const Preset::StageItem& Preset::getStageItem(std::size_t stageItemIdx)
+{
+    return m_presetItems.at(stageItemIdx);
+}
+
 } // namespace Reflow::Presets

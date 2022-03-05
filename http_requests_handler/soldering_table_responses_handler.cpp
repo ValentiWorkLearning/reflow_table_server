@@ -14,7 +14,7 @@ namespace api::v1
 class ReflowController::ReflowControllerImpl
 {
 public:
-    void PingPong(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
+    void PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
         ret["message"] = "Pong";
@@ -25,7 +25,7 @@ public:
 
     void CreatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback)
+        THttpResponseCallback&& callback)
     {
         Json::Value ret;
         ret["preset-id"] = m_presetsHolder->addNewPreset(req.get()->body());
@@ -35,7 +35,7 @@ public:
 
     void GetPreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback,
+        THttpResponseCallback&& callback,
         const std::string& presetId)
     {
         if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>()(presetId));
@@ -47,7 +47,7 @@ public:
             Json::Value stagesArray{Json::arrayValue};
             presetPtr->forEachStage([&stagesArray](const auto& presetStage) {
                 Json::Value temperatureStamp;
-                temperatureStamp["temperature"] = presetStage.tempereatureStep;
+                temperatureStamp["temperature"] = presetStage.temperatureStep;
                 temperatureStamp["stage-duration"] = fmt::format("{}", presetStage.stageDuration);
                 stagesArray.append(temperatureStamp);
             });
@@ -60,12 +60,12 @@ public:
 
     void UpdatePreset(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback,
+        THttpResponseCallback&& callback,
         const std::string& presetId)
     {
     }
 
-    void GetStats(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback)
+    void GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
         ret["temperature_data"] = m_thermocoupleDataProvider.getRawData();
@@ -75,7 +75,7 @@ public:
 
     void PushCommand(
         const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback)
+        THttpResponseCallback&& callback)
     {
     }
 
@@ -94,49 +94,49 @@ ReflowController::~ReflowController() = default;
 
 void ReflowController::GetPreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback,
+    THttpResponseCallback&& callback,
     const std::string& presetId)
 {
     m_pControllerImpl->GetPreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback), presetId);
+        req, std::forward<THttpResponseCallback>(callback), presetId);
 }
 
 void ReflowController::CreatePreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    THttpResponseCallback&& callback)
 {
     m_pControllerImpl->CreatePreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<THttpResponseCallback>(callback));
 }
 
 void ReflowController::UpdatePreset(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback,
+    THttpResponseCallback&& callback,
     const std::string& presetId)
 {
     m_pControllerImpl->UpdatePreset(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback), presetId);
+        req, std::forward<THttpResponseCallback>(callback), presetId);
 }
 void ReflowController::GetStats(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    THttpResponseCallback&& callback)
 {
     m_pControllerImpl->GetStats(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<THttpResponseCallback>(callback));
 }
 void ReflowController::PushCommand(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    THttpResponseCallback&& callback)
 {
     m_pControllerImpl->PushCommand(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<THttpResponseCallback>(callback));
 }
 void ReflowController::PingPong(
     const HttpRequestPtr& req,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+    THttpResponseCallback&& callback)
 {
     m_pControllerImpl->PingPong(
-        req, std::forward<std::function<void(const HttpResponsePtr&)>>(callback));
+        req, std::forward<THttpResponseCallback>(callback));
 }
 
 } // namespace api::v1
