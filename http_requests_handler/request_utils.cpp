@@ -18,7 +18,6 @@ std::optional<RequestUtils::TStagesContainer> parseStagesArray(
             if (!tempIt->is_number())
                 return std::nullopt;
 
-
             stageItem.temperatureStep = tempIt->get<std::uint32_t>();
         }
 
@@ -40,14 +39,14 @@ namespace RequestUtils
 {
 TPresetRequestVariant parsePresetUpdateRequest(std::string_view requestBody)
 {
-    auto ojsonObj = nlohmann::json{requestBody};
+    auto ojsonObj = nlohmann::json::parse(requestBody);
     if (ojsonObj.is_discarded())
         return std::monostate{};
 
     if (!ojsonObj.is_object())
         return std::monostate{};
 
-    auto oObjType = ojsonObj.get_ref<const nlohmann::json::object_t&>();
+    const auto& oObjType = ojsonObj.get_ref<const nlohmann::json::object_t&>();
     if (auto it = oObjType.find("name"); it != oObjType.end())
     {
         return it->second.get<std::string>();
@@ -57,14 +56,31 @@ TPresetRequestVariant parsePresetUpdateRequest(std::string_view requestBody)
         if (!it->second.is_array())
             return std::monostate{};
 
-        auto stagesArray = it->second.get_ref<const nlohmann::json::array_t&>();
+        const auto& stagesArray = it->second.get_ref<const nlohmann::json::array_t&>();
         if (auto parseResult = parseStagesArray(stagesArray); parseResult)
             return parseResult.value();
         else
             return std::monostate{};
-
     }
 
     return std::monostate{};
+}
+
+std::optional<std::string> parsePresetName(std::string_view requestBody)
+{
+    auto jsonBody = nlohmann::json::parse(requestBody);
+
+    if (jsonBody.is_discarded())
+        return std::nullopt;
+    if (!jsonBody.is_object())
+        return std::nullopt;
+
+    if (auto it = jsonBody.find("preset-name"); it != jsonBody.end())
+    {
+        auto presetName = it->get<std::string>();
+        return presetName.empty() ? std::nullopt : std::make_optional(presetName);
+    }
+
+    return std::nullopt;
 }
 } // namespace RequestUtils

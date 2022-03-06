@@ -15,7 +15,7 @@ public:
 
 public:
     METHOD_LIST_BEGIN
-    METHOD_ADD(ReflowController::CreatePreset, "/preset/{preset_name}", Post);
+    METHOD_ADD(ReflowController::CreatePreset, "/preset", Post);
     METHOD_ADD(ReflowController::GetPreset, "/preset/{id}", Get);
     METHOD_ADD(ReflowController::GetPresets, "/presets", Get);
     METHOD_ADD(ReflowController::UpdatePreset, "/preset/{id}", Put);

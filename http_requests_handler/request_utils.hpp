@@ -19,4 +19,5 @@ using TPresetRequestVariant = std::variant<std::string,TStagesContainer , std::m
 
 TPresetRequestVariant parsePresetUpdateRequest(std::string_view requestBody);
 
+std::optional<std::string> parsePresetName(std::string_view requestBody);
 }

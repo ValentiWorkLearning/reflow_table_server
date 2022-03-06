@@ -6,7 +6,7 @@
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
 
-#include <boost/range/counting_range.hpp>
+#include <boost/range/adaptor/indexed.hpp>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -16,6 +16,11 @@ namespace api::v1
 
 class ReflowController::ReflowControllerImpl
 {
+public:
+    ReflowControllerImpl() : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
+    {
+    }
+
 public:
     void PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
@@ -28,8 +33,17 @@ public:
 
     void CreatePreset(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
+        auto presetName = RequestUtils::parsePresetName(utils::urlDecode(req.get()->getBody()));
+        if (!presetName)
+        {
+            auto resp = HttpResponse::newHttpResponse();
+            resp->setStatusCode(k400BadRequest);
+            callback(resp);
+            return;
+        }
+
         Json::Value ret;
-        ret["preset-id"] = m_presetsHolder->addNewPreset(req.get()->body());
+        ret["preset-id"] = m_presetsHolder->addNewPreset(presetName.value());
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }
@@ -39,8 +53,7 @@ public:
         THttpResponseCallback&& callback,
         const std::string& presetId)
     {
-        if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>{}(presetId));
-            presetPtr)
+        if (auto presetPtr = m_presetsHolder->getPresetById(std::stoll(presetId)); presetPtr)
         {
             Json::Value ret;
             ret["preset-name"] = presetPtr->presetName();
@@ -77,25 +90,23 @@ public:
         THttpResponseCallback&& callback,
         const std::string& presetId)
     {
-        if (auto presetPtr = m_presetsHolder->getPresetById(std::hash<std::string>{}(presetId));
+        if (auto presetPtr = m_presetsHolder->getPresetById(std::atoll(presetId.c_str()));
             presetPtr)
         {
             auto requestBody = req.get()->body();
             auto parsedState = RequestUtils::parsePresetUpdateRequest(requestBody);
 
-            auto parseResult = Overload{
+            auto parseResultVisitor = Overload{
                 [&presetPtr](const std::string& itemName) { presetPtr->setName(itemName); },
                 [&presetPtr](RequestUtils::TStagesContainer& stagesContainer) {
-                    auto countedRange{
-                        boost::counting_range(std::size_t{}, stagesContainer.size() - 1)};
-
-                    for (auto stageItem : countedRange)
+                    for (auto stageItem : stagesContainer | boost::adaptors::indexed())
                     {
                         presetPtr->replaceStageItem(
-                            stageItem, std::move(stagesContainer.at(stageItem)));
+                            stageItem.index(), std::move(stageItem.value()));
                     }
                 },
-                [&presetPtr](std::monostate mono) {}};
+                [](std::monostate mono) {}};
+            std::visit(parseResultVisitor, parsedState);
 
             auto resp = HttpResponse::newHttpResponse();
             callback(resp);
