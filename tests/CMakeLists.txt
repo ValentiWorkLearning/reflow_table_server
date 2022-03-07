@@ -17,7 +17,7 @@ add_executable(
     ${PROJECT_NAME}
     presets_holder_tests/presets_test_suite.cpp
     iio_parser_tests/iio_parser_test.cpp
-)
+    commands_parser_test/commands_parser_tests.cpp)
 
 mark_as_advanced(
     BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
@@ -36,6 +36,7 @@ target_link_libraries(
     PRIVATE
     presets_manager
     platform
+    commands_parser
     PRIVATE
     GTest::gtest
     GTest::gmock
