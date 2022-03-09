@@ -1,0 +1,11 @@
+[settings]
+os=Windows
+arch=x86_64
+compiler=Visual Studio
+compiler.cppstd=20
+compiler.version=17
+build_type=Release
+gtest:compiler.cppstd=20
+[options]
+[tool_requires]
+[env]

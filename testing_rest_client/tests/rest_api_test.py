@@ -40,6 +40,10 @@ class TestReflowApi(unittest.TestCase):
         received_stages = current_preset_data['stages']
         self.assertEquals(len(preset_stages), len(received_stages))
 
+    def test_post_commands_to_reflow_table(self):
+        self.post_command_to_server('start')
+        self.post_command_to_server('stop')
+
     def create_preset_with_name(self, preset_name):
         payload = {'preset-name':preset_name}
         create_preset_url = urllib.parse.urljoin(self.base_url, 'preset')
@@ -68,6 +72,12 @@ class TestReflowApi(unittest.TestCase):
         request_url = urllib.parse.urljoin(self.base_url, 'preset/')
         request_url = urllib.parse.urljoin(request_url,str(preset_id))
         return request_url
+
+    def post_command_to_server(self,command):
+        request_url = urllib.parse.urljoin(self.base_url, 'command')
+        command_payload = {'command': command}
+        response = requests.post(request_url,data=json.dumps(command_payload))
+        self.assertTrue(response.ok)
 
 if __name__ == '__main__':
     unittest.main()

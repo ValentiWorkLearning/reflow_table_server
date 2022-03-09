@@ -1,12 +1,12 @@
 project(reflow_table_server_testing LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 include(GoogleTest)
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-set(CMAKE_CXX_STANDARD 20)
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 enable_testing()
 
@@ -43,6 +43,7 @@ target_link_libraries(
     GTest::gtest_main
     GTest::gmock_main
     Boost::boost
+    tl::expected
 )
 
 target_compile_features(

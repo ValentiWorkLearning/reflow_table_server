@@ -1,6 +1,9 @@
-#include <boost/signals2/connection.hpp>
 #include <commands/commands_list.hpp>
 #include <commands/commands_parser.hpp>
+#include <nlohmann/json.hpp>
+#include <set>
+#include <string>
+#include <tl/expected.hpp>
 
 namespace Reflow::Commands
 {
@@ -8,26 +11,60 @@ namespace Reflow::Commands
 class CommandsParser::CommandsParserImpl
 {
 public:
-    void parseCommandContext(std::string_view commandContext)
+    TCommandContext parseCommandContext(std::string_view commandContext)
     {
-    }
+        try
+        {
 
-    boost::signals2::connection subscribeOnCommandContextParsed(TOnCommandContextReady slot)
-    {
+            auto parsedJson = nlohmann::json::parse(commandContext);
+            if (parsedJson.is_discarded())
+            {
+                return tl::make_unexpected(Reflow::Commands::Messages::kInvalidJson);
+            }
+
+            if (auto it = parsedJson.find("command"); it != parsedJson.end())
+            {
+                auto commandValue = it->get<std::string>();
+                if (!isCommandAllowed(commandValue))
+                {
+                    return tl::make_unexpected(Reflow::Commands::Messages::kInvalidCommand);
+                }
+
+                if (commandValue == kStartCommand)
+                {
+                    return StartReflow{};
+                }
+                else if (commandValue == kStopCommand)
+                {
+                    return StopReflow{};
+                }
+            }
+            return tl::make_unexpected(Reflow::Commands::Messages::kMissedEntry);
+        }
+        catch (const nlohmann::json::parse_error& ex)
+        {
+            return tl::make_unexpected(Reflow::Commands::Messages::kInvalidJson);
+        }
     }
 
 private:
+    bool isCommandAllowed(std::string_view isAllowedCheck)
+    {
+        auto it = kAllowedCommandsList.find(isAllowedCheck);
+        return it != kAllowedCommandsList.end();
+    }
+
+private:
+    static constexpr inline std::string_view kStartCommand = "start";
+    static constexpr inline std::string_view kStopCommand = "stop";
+
+    using TAllowedCommands = std::set<std::string_view>;
+    static inline TAllowedCommands kAllowedCommandsList{kStartCommand, kStopCommand};
 };
 
-void CommandsParser::parseCommandContext(std::string_view commandContext)
+TCommandContext CommandsParser::parseCommandContext(std::string_view commandContext)
 {
-    m_pImpl->parseCommandContext(commandContext);
-}
-
-boost::signals2::connection CommandsParser::subscribeOnCommandContextReady(
-    TOnCommandContextReady slot)
-{
-    return m_pImpl->subscribeOnCommandContextParsed(slot);
+    return m_pImpl->parseCommandContext(commandContext);
 }
 
 CommandsParser::CommandsParser() : m_pImpl{std::make_unique<CommandsParserImpl>()}

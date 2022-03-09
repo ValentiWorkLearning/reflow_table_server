@@ -10,6 +10,7 @@
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <boost/scope_exit.hpp>
 
 namespace api::v1
 {
@@ -17,7 +18,10 @@ namespace api::v1
 class ReflowController::ReflowControllerImpl
 {
 public:
-    ReflowControllerImpl() : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
+    ReflowControllerImpl()
+        : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
+        , m_commandsParser{new Reflow::Commands::CommandsParser()}
+        , m_reflowController{new Reflow::Controller::ReflowProcessController()}
     {
     }
 
@@ -123,6 +127,22 @@ public:
 
     void PushCommand(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
+        auto commandBody = req->getBody();
+        auto parseResult = m_commandsParser->parseCommandContext(commandBody);
+
+        auto resp = HttpResponse::newHttpResponse();
+        if (!parseResult)
+        {
+            resp->setStatusCode(k400BadRequest);
+            resp->setBody(parseResult.error().data());
+            callback(resp);
+        }
+        else
+        {
+            m_reflowController->postCommand(parseResult.value());
+            callback(resp);
+        }
+
     }
 
 private:

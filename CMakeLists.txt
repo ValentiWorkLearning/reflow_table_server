@@ -51,6 +51,7 @@ conan_cmake_configure(REQUIRES
                       gtest/1.11.0
                       boost/1.78.0
                       nlohmann_json/3.10.5
+                      tl-expected/20190710
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
@@ -65,13 +66,14 @@ if(CROSS_BUILD_FOR_ARM)
 
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
-                    PROFILE ${CMAKE_CURRENT_LIST_DIR}/orange_zero_profile
+                    PROFILE ${CMAKE_CURRENT_LIST_DIR}/conan_profiles/orange_zero_profile
                     REMOTE conancenter
                     SETTINGS ${settings})
 else()
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
                     REMOTE conancenter
+                    PROFILE ${CMAKE_CURRENT_LIST_DIR}/conan_profiles/${CMAKE_CXX_COMPILER_ID}/profile
                     SETTINGS ${settings})
 endif()
 
@@ -81,6 +83,7 @@ find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(tl-expected REQUIRED)
 
 add_subdirectory(drogon)
 add_subdirectory(platform)
