@@ -23,6 +23,8 @@ public:
     METHOD_ADD(ReflowController::PushCommand, "/command", Post);
     METHOD_ADD(ReflowController::PingPong, "/ping-pong", Get);
     METHOD_LIST_END
+public:
+    void postInitCall();
 
 protected:
     using THttpResponseCallback = std::function<void(const HttpResponsePtr&)>;

@@ -40,9 +40,20 @@ class TestReflowApi(unittest.TestCase):
         received_stages = current_preset_data['stages']
         self.assertEquals(len(preset_stages), len(received_stages))
 
-    def test_post_commands_to_reflow_table(self):
+    def test_post_commands_to_reflow_table_without_selected_preset(self):
         self.post_command_to_server('start')
         self.post_command_to_server('stop')
+
+    def test_post_commands_to_reflow_table_with_selected_prest(self):
+        preset_name = 'SMT960'
+        preset_id = self.create_preset_with_name(preset_name)
+        preset_stages = [{'temperature':150, 'duration':60},{'temperature':180, 'duration':80}]
+        self.add_stages_to_preset(preset_id,preset_stages)
+
+        self.select_active_preset(preset_id)
+        self.post_command_to_server('start')
+        self.post_command_to_server('stop')
+
 
     def create_preset_with_name(self, preset_name):
         payload = {'preset-name':preset_name}
@@ -76,6 +87,12 @@ class TestReflowApi(unittest.TestCase):
     def post_command_to_server(self,command):
         request_url = urllib.parse.urljoin(self.base_url, 'command')
         command_payload = {'command': command}
+        response = requests.post(request_url,data=json.dumps(command_payload))
+        self.assertTrue(response.ok)
+
+    def select_active_preset(self,preset_id):
+        request_url = urllib.parse.urljoin(self.base_url, 'command')
+        command_payload = {'command': 'select-preset', 'preset-id':preset_id}
         response = requests.post(request_url,data=json.dumps(command_payload))
         self.assertTrue(response.ok)
 

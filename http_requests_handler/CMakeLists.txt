@@ -12,6 +12,7 @@ target_link_libraries(
 	presets_manager
 	commands_parser
 	reflow_controller
+	utils
 	PRIVATE
 	drogon
 	fmt::fmt

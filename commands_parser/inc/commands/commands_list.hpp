@@ -14,7 +14,12 @@ struct StopReflow
 {
 };
 
-using TCommandVariant = std::variant<StartReflow, StopReflow>;
+struct SelectPreset
+{
+    std::size_t presetId;
+};
+
+using TCommandVariant = std::variant<StartReflow, StopReflow,SelectPreset>;
 using TCommandContext = tl::expected<TCommandVariant,std::string_view>;
 
 } // namespace Reflow::Commands

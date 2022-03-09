@@ -38,6 +38,17 @@ public:
                 {
                     return StopReflow{};
                 }
+                else if (commandValue == kSelectPresetCommand)
+                {
+                    if (auto presetHash = parsedJson.find("preset-id");
+                        presetHash != parsedJson.end())
+                    {
+                        return SelectPreset
+                        {
+                            .presetId = presetHash->get<std::size_t>()
+                        };
+                    }
+                }
             }
             return tl::make_unexpected(Reflow::Commands::Messages::kMissedEntry);
         }
@@ -57,9 +68,13 @@ private:
 private:
     static constexpr inline std::string_view kStartCommand = "start";
     static constexpr inline std::string_view kStopCommand = "stop";
+    static constexpr inline std::string_view kSelectPresetCommand = "select-preset";
 
     using TAllowedCommands = std::set<std::string_view>;
-    static inline TAllowedCommands kAllowedCommandsList{kStartCommand, kStopCommand};
+    static inline TAllowedCommands kAllowedCommandsList{
+        kStartCommand,
+        kStopCommand,
+        kSelectPresetCommand};
 };
 
 TCommandContext CommandsParser::parseCommandContext(std::string_view commandContext)

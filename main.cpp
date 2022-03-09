@@ -16,6 +16,8 @@ int main()
     dumpAvailableEndpoints();
 
     auto reflowRequestsHandler = std::make_shared<api::v1::ReflowController>();
+    reflowRequestsHandler->postInitCall();
+
     app().registerController(reflowRequestsHandler);
     app().loadConfigFile("./config.json").run();
 

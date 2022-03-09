@@ -12,6 +12,8 @@
 #include <spdlog/spdlog.h>
 #include <boost/scope_exit.hpp>
 
+#include <common/overloaded.hpp>
+
 namespace api::v1
 {
 
@@ -21,11 +23,17 @@ public:
     ReflowControllerImpl()
         : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
-        , m_reflowController{new Reflow::Controller::ReflowProcessController()}
+        , m_reflowController{new Reflow::Controller::ReflowProcessController(m_presetsHolder)}
     {
     }
 
 public:
+
+    void postInitCall()
+    {
+        m_reflowController->postInitCall();
+    }
+
     void PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
@@ -57,7 +65,7 @@ public:
         THttpResponseCallback&& callback,
         const std::string& presetId)
     {
-        if (auto presetPtr = m_presetsHolder->getPresetById(std::stoll(presetId)); presetPtr)
+        if (auto presetPtr = m_presetsHolder->getPresetById(std::stoull(presetId)); presetPtr)
         {
             Json::Value ret;
             ret["preset-name"] = presetPtr->presetName();
@@ -157,6 +165,12 @@ ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<Reflow
 }
 
 ReflowController::~ReflowController() = default;
+
+
+void ReflowController::postInitCall()
+{
+    m_pControllerImpl->postInitCall();
+}
 
 void ReflowController::GetPreset(
     const HttpRequestPtr& req,

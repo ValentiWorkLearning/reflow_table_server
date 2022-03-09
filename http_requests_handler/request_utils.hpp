@@ -4,14 +4,6 @@
 #include <presets/presets_holder.hpp>
 #include <string>
 
-template <typename... Ts>
-struct Overload : Ts...
-{
-    using Ts::operator()...;
-};
-template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
-
-
 namespace RequestUtils
 {
 using TStagesContainer = std::vector<Reflow::Presets::Preset::StageItem>;

@@ -92,6 +92,7 @@ add_subdirectory(http_requests_handler)
 add_subdirectory(presets)
 add_subdirectory(commands_parser)
 add_subdirectory(reflow_controller)
+add_subdirectory(utils)
 
 if(CROSS_BUILD_FOR_ARM AND BUILD_WITH_IIO_SUPPORT)
     add_subdirectory(libiio)
