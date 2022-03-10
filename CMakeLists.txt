@@ -62,8 +62,8 @@ set(CONAN_PACKAGES_OPTIONS
 )
 
 if(CROSS_BUILD_FOR_ARM)
-    list(APPEND libgpiod/1.6.3 ${CONAN_REQUIRED_LIBRARIES_LIST})
-    list(APPEND libgpiod:enable_bindings_cxx ${CONAN_PACKAGES_OPTIONS})
+    list(APPEND CONAN_REQUIRED_LIBRARIES_LIST libgpiod/1.6.3)
+    list(APPEND CONAN_PACKAGES_OPTIONS libgpiod:enable_bindings_cxx=True)
 endif()
 
 conan_cmake_configure(REQUIRES
@@ -76,10 +76,15 @@ conan_cmake_configure(REQUIRES
 
 conan_cmake_autodetect(settings)
 
+#issue with pkg-conf
+#https://github.com/conan-io/conan-center-index/issues/3026
+#https://github.com/conan-io/conan-center-index/issues/9005#issuecomment-1018441082
+#https://github.com/conan-io/conan/issues/8081
+
 if(CROSS_BUILD_FOR_ARM)
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
-                    PROFILE ${CMAKE_CURRENT_LIST_DIR}/conan_profiles/orange_zero_profile
+                    PROFILE_BUILD default PROFILE_HOST ${CMAKE_CURRENT_LIST_DIR}/conan_profiles/orange_zero_profile
                     REMOTE conancenter
                     SETTINGS ${settings})
 else()
@@ -99,7 +104,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(tl-expected REQUIRED)
 
 if(CROSS_BUILD_FOR_ARM)
-    find_package(gpiod REQUIRED)
+    find_package(libgpiod REQUIRED)
 endif()
 
 add_subdirectory(drogon)

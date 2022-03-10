@@ -1,19 +1,22 @@
-#pragma once
-
 #include <charconv>
 #include <device_includes/ih_thermocouple_data_provider.hpp>
 #include <exception>
 #include <file_raii_guard.hpp>
 #include <fmt/format.h>
 #include <string>
+#include <iio_format_parser.hpp>
+
+#include <boost/lexical_cast.hpp>
 
 namespace Reflow::Devices::Thermocouple
 {
 class ThermocoupleDataProvider::ThermocoupleDataProviderImpl
 {
 public:
-    ThermocoupleDataProviderImpl() : m_fileGuard{kThermocouplePathRaw}
+    ThermocoupleDataProviderImpl() : m_fileGuard{kThermocouplePathRaw},
+            m_formatParser{new Platform::Iio::FormatParser()}
     {
+        m_formatParser->setFormat(kThermocoupleDataFormat);
     }
 
     std::int32_t getRawData()
@@ -24,22 +27,26 @@ public:
         kThermoCoupleData[dataSize + 1] = '\0';
         auto readFrom = std::string_view(kThermoCoupleData.data());
 
-        std::int32_t result;
+        std::uint32_t result;
         auto [ptr, error]{
             std::from_chars(readFrom.data(), readFrom.data() + readFrom.size(), result)};
 
         if (error != std::errc())
             throw std::runtime_error(fmt::format("std::from_chars failed with:{}", error));
 
-        return result;
+        auto correctedResult = m_formatParser->parseValue(result);
+
+        return boost::lexical_cast<std::int32_t>(correctedResult.value());
     }
 
 private:
     static constexpr inline std::string_view kThermocouplePathRaw =
         "/sys/bus/iio/devices/iio:device0/in_temp_raw";
 
+     static constexpr inline std::string_view kThermocoupleDataFormat = "be:s13/16>>3";
 private:
     FileRaiiGuard m_fileGuard;
+    Platform::Iio::FormatParser::Ptr m_formatParser;
 };
 
 std::int32_t ThermocoupleDataProvider::getRawData()

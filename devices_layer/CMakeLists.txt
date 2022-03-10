@@ -26,7 +26,8 @@ if(CROSS_BUILD_FOR_ARM)
         platform
         PUBLIC
         Boost::boost
-        gpiod::gpiod
+        libgpiod::libgpiod
+        fmt::fmt
     )
 else()
     target_sources(devices_layer

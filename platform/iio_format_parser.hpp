@@ -14,6 +14,57 @@
 
 namespace Platform::Iio
 {
+
+template <typename Stub> struct NativeEndian
+{
+};
+
+struct SignedTag
+{
+};
+
+struct UnsignedTag
+{
+};
+
+template <> struct NativeEndian<SignedTag>
+{
+    using TBits8 = boost::endian::native_int8_t;
+    using TBits16 = boost::endian::native_int16_t;
+    using TBits32 = boost::endian::native_int32_t;
+};
+
+template <> struct NativeEndian<UnsignedTag>
+{
+    using TBits8 = boost::endian::native_uint8_t;
+    using TBits16 = boost::endian::native_uint16_t;
+    using TBits32 = boost::endian::native_uint32_t;
+};
+struct BigEndianTag
+{
+    using TBits8 = boost::endian::big_int8_t;
+    using TUBits8 = boost::endian::big_uint8_t;
+
+    using TBits16 = boost::endian::big_int16_t;
+    using TUBits16 = boost::endian::big_uint16_t;
+
+    using TBits32 = boost::endian::big_int32_t;
+    using TUBits32 = boost::endian::big_uint32_t;
+};
+
+struct LittleEndianTag
+{
+    using TBits8 = boost::endian::little_int8_t;
+    using TUBits8 = boost::endian::little_uint8_t;
+
+    using TBits16 = boost::endian::little_int16_t;
+    using TUBits16 = boost::endian::little_uint16_t;
+
+    using TBits32 = boost::endian::little_int32_t;
+    using TUBits32 = boost::endian::little_uint32_t;
+};
+
+
 class FormatParser : public boost::intrusive_ref_counter<FormatParser>
 {
 public:
@@ -73,54 +124,6 @@ private:
         Little
     };
 
-    template <typename Stub> struct NativeEndian
-    {
-    };
-
-    struct SignedTag
-    {
-    };
-
-    struct UnsignedTag
-    {
-    };
-
-    template <> struct NativeEndian<SignedTag>
-    {
-        using TBits8 = boost::endian::native_int8_t;
-        using TBits16 = boost::endian::native_int16_t;
-        using TBits32 = boost::endian::native_int32_t;
-    };
-
-    template <> struct NativeEndian<UnsignedTag>
-    {
-        using TBits8 = boost::endian::native_uint8_t;
-        using TBits16 = boost::endian::native_uint16_t;
-        using TBits32 = boost::endian::native_uint32_t;
-    };
-    struct BigEndianTag
-    {
-        using TBits8 = boost::endian::big_int8_t;
-        using TUBits8 = boost::endian::big_uint8_t;
-
-        using TBits16 = boost::endian::big_int16_t;
-        using TUBits16 = boost::endian::big_uint16_t;
-
-        using TBits32 = boost::endian::big_int32_t;
-        using TUBits32 = boost::endian::big_uint32_t;
-    };
-
-    struct LittleEndianTag
-    {
-        using TBits8 = boost::endian::little_int8_t;
-        using TUBits8 = boost::endian::little_uint8_t;
-
-        using TBits16 = boost::endian::little_int16_t;
-        using TUBits16 = boost::endian::little_uint16_t;
-
-        using TBits32 = boost::endian::little_int32_t;
-        using TUBits32 = boost::endian::little_uint32_t;
-    };
 
     struct InternalFormatHolder
     {
