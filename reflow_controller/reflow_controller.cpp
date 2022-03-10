@@ -25,6 +25,7 @@ public:
         , m_pTemperatureSensor{pThermocouple}
         , m_pRelayController{pRelayController}
     {
+        m_reflowProcessData.regulatorData.dt = kSystickResolution.count();
     }
 
 public:
@@ -32,6 +33,12 @@ public:
     {
         m_requestsQueue.pushOperation(contextVariant);
     }
+
+    bool isRunning() const
+    {
+        return m_isReflowRunning;
+    }
+
     void postInitCall()
     {
         m_workerThread =
@@ -41,6 +48,19 @@ public:
                     pStrongThis->runnable(stoken);
                 }
             });
+    }
+
+    void setRegulatorParams(const RegulatorParams& regulatorParams)
+    {
+        m_reflowProcessData.regulatorData.k = regulatorParams.k;
+        m_reflowProcessData.regulatorData.hysteresis = regulatorParams.hysteresis;
+    }
+
+    RegulatorParams getRegulatorParams() const
+    {
+        return RegulatorParams{
+            .k = m_reflowProcessData.regulatorData.k,
+            .hysteresis = m_reflowProcessData.regulatorData.hysteresis};
     }
 
 public:
@@ -78,7 +98,7 @@ private:
         {
             float previousSignalValue;
             std::uint32_t dt;
-            std::uint32_t k;
+            float k;
             std::uint32_t hysteresis;
             std::chrono::milliseconds previousTimepoint;
         };
@@ -274,6 +294,22 @@ void ReflowProcessController::postInitCall()
 {
     m_pImpl->postInitCall();
 }
+
+bool ReflowProcessController::isRunning() const
+{
+    return m_pImpl->isRunning();
+}
+
+void ReflowProcessController::setRegulatorParams(const RegulatorParams& regulatorParams)
+{
+    return m_pImpl->setRegulatorParams(regulatorParams);
+}
+
+RegulatorParams ReflowProcessController::getRegulatorParams() const
+{
+    return m_pImpl->getRegulatorParams();
+}
+
 ReflowProcessController::ReflowProcessController(
     Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
     Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocoupleData,

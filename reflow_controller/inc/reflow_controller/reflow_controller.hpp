@@ -4,11 +4,18 @@
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
 
 #include <commands/commands_list.hpp>
-#include <presets/presets_holder.hpp>
 #include <platform_devices/platform_device_usings.hpp>
+#include <presets/presets_holder.hpp>
 
 namespace Reflow::Controller
 {
+
+struct RegulatorParams
+{
+    float k;
+    std::uint32_t hysteresis;
+};
+
 class ReflowProcessController : public boost::intrusive_ref_counter<ReflowProcessController>
 {
 
@@ -20,8 +27,12 @@ public:
     ~ReflowProcessController();
 
 public:
-    void postCommand(Reflow::Commands::TCommandVariant contextVariant);
     void postInitCall();
+
+    void postCommand(Reflow::Commands::TCommandVariant contextVariant);
+    bool isRunning() const;
+    void setRegulatorParams(const RegulatorParams& regulatorParams);
+    RegulatorParams getRegulatorParams() const;
 
 public:
     using Ptr = boost::intrusive_ptr<ReflowProcessController>;

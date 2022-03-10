@@ -7,10 +7,10 @@
 #include <reflow_controller/reflow_controller.hpp>
 
 #include <boost/range/adaptor/indexed.hpp>
+#include <boost/scope_exit.hpp>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
-#include <boost/scope_exit.hpp>
 
 #include <common/overloaded.hpp>
 
@@ -27,13 +27,11 @@ public:
         , m_reflowController{new Reflow::Controller::ReflowProcessController(
               m_presetsHolder,
               m_thermocoupleDataProvider,
-              Reflow::Devices::Platform::getPlatformRelayController()
-            )}
+              Reflow::Devices::Platform::getPlatformRelayController())}
     {
     }
 
 public:
-
     void postInitCall()
     {
         m_reflowController->postInitCall();
@@ -155,7 +153,42 @@ public:
             m_reflowController->postCommand(parseResult.value());
             callback(resp);
         }
+    }
 
+    void GetRegulatorParams(const HttpRequestPtr& req, THttpResponseCallback&& callback)
+    {
+        Json::Value ret;
+        const auto& regulatorParams{m_reflowController->getRegulatorParams()};
+
+        ret["hysteresis"] = regulatorParams.hysteresis;
+        ret["k"] = regulatorParams.k;
+
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        callback(resp);
+    }
+
+    void SetRegulatorParams(const HttpRequestPtr& req, THttpResponseCallback&& callback)
+    {
+        auto resp = HttpResponse::newHttpResponse();
+        if (m_reflowController->isRunning())
+        {
+            resp->setStatusCode(k400BadRequest);
+            resp->setBody("Reflow process is running. Can't change the regulator settings");
+        }
+        else
+        {
+            auto regulatorData = RequestUtils::parseRegulatorParams(req->body());
+            if (!regulatorData)
+            {
+                resp->setStatusCode(k400BadRequest);
+                resp->setBody(std::string(regulatorData.error()));
+            }
+            else
+            {
+                m_reflowController->setRegulatorParams(regulatorData.value());
+            }
+        }
+        callback(resp);
     }
 
 private:
@@ -170,7 +203,6 @@ ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<Reflow
 }
 
 ReflowController::~ReflowController() = default;
-
 
 void ReflowController::postInitCall()
 {
@@ -213,6 +245,20 @@ void ReflowController::PushCommand(const HttpRequestPtr& req, THttpResponseCallb
 void ReflowController::PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
 {
     m_pControllerImpl->PingPong(req, std::forward<THttpResponseCallback>(callback));
+}
+
+void ReflowController::GetRegulatorParams(
+    const HttpRequestPtr& req,
+    THttpResponseCallback&& callback)
+{
+    m_pControllerImpl->GetRegulatorParams(req, std::forward<THttpResponseCallback>(callback));
+}
+
+void ReflowController::SetRegulatorParams(
+    const HttpRequestPtr& req,
+    THttpResponseCallback&& callback)
+{
+    m_pControllerImpl->SetRegulatorParams(req, std::forward<THttpResponseCallback>(callback));
 }
 
 } // namespace api::v1

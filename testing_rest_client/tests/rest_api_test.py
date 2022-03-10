@@ -54,6 +54,11 @@ class TestReflowApi(unittest.TestCase):
         self.post_command_to_server('start')
         self.post_command_to_server('stop')
 
+    def test_regulator_params_sertup(self):
+        regulator_params = {'hysteresis':3, 'k':1.0}
+        self.set_regulator_params(regulator_params)
+        params_to_check = self.get_regulator_params()
+        self.assertEqual(regulator_params,params_to_check)
 
     def create_preset_with_name(self, preset_name):
         payload = {'preset-name':preset_name}
@@ -95,6 +100,18 @@ class TestReflowApi(unittest.TestCase):
         command_payload = {'command': 'select-preset', 'preset-id':preset_id}
         response = requests.post(request_url,data=json.dumps(command_payload))
         self.assertTrue(response.ok)
+
+    def set_regulator_params(self,regulator_params):
+        request_url = urllib.parse.urljoin(self.base_url, 'regulator')
+        payload = json.dumps(regulator_params)
+        response =  requests.post(request_url,data=payload)
+        self.assertTrue(response.ok)
+
+    def get_regulator_params(self):
+        request_url = urllib.parse.urljoin(self.base_url, 'regulator')
+        response = requests.get(request_url)
+        self.assertTrue(response.ok)
+        return json.loads(response.text)
 
 if __name__ == '__main__':
     unittest.main()

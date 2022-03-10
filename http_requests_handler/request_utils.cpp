@@ -84,4 +84,29 @@ std::optional<std::string> parsePresetName(std::string_view requestBody)
 
     return std::nullopt;
 }
+
+tl::expected<Reflow::Controller::RegulatorParams, std::string_view> parseRegulatorParams(
+    std::string_view requestBody)
+{
+    auto jsonBody = nlohmann::json::parse(requestBody);
+    if (jsonBody.is_discarded())
+        return tl::make_unexpected("Invalid json data");
+    if (!jsonBody.is_object())
+        return tl::make_unexpected("Expected object JSON type for the Regulator params");
+
+    Reflow::Controller::RegulatorParams params{};
+
+    auto hysteresisIt = jsonBody.find("hysteresis");
+    auto kCoefIt = jsonBody.find("k");
+
+    if (hysteresisIt == jsonBody.end())
+        return tl::make_unexpected("Missed hysteresis entry");
+    if (kCoefIt == jsonBody.end())
+        return tl::make_unexpected("Missed 'k' entry");
+    params.hysteresis = hysteresisIt->get<std::uint32_t>();
+    params.k = kCoefIt->get<float>();
+
+    return params;
+}
+
 } // namespace RequestUtils
