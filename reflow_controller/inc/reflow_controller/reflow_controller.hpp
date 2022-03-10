@@ -5,6 +5,7 @@
 
 #include <commands/commands_list.hpp>
 #include <presets/presets_holder.hpp>
+#include <platform_devices/platform_device_usings.hpp>
 
 namespace Reflow::Controller
 {
@@ -12,7 +13,10 @@ class ReflowProcessController : public boost::intrusive_ref_counter<ReflowProces
 {
 
 public:
-    ReflowProcessController(Reflow::Presets::PresetsHolder::Ptr presetsHolder);
+    ReflowProcessController(
+        Reflow::Presets::PresetsHolder::Ptr presetsHolder,
+        Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocouple,
+        Reflow::Devices::Relay::RelayController::Ptr pRelayController);
     ~ReflowProcessController();
 
 public:

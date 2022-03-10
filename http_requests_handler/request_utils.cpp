@@ -13,7 +13,7 @@ std::optional<RequestUtils::TStagesContainer> parseStagesArray(
         if (!item.is_object())
             return std::nullopt;
 
-        Reflow::Presets::Preset::StageItem stageItem;
+        Reflow::Presets::Preset::StageItem stageItem{};
         if (auto tempIt = item.find("temperature"); tempIt != item.end())
         {
             if (!tempIt->is_number())

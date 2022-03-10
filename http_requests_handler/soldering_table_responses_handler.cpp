@@ -21,9 +21,14 @@ class ReflowController::ReflowControllerImpl
 {
 public:
     ReflowControllerImpl()
-        : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
+        : m_thermocoupleDataProvider{Reflow::Devices::Platform::getPlatformThermocoupleSensor()}
+        , m_presetsHolder{new Reflow::Presets::PresetsHolder()}
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
-        , m_reflowController{new Reflow::Controller::ReflowProcessController(m_presetsHolder)}
+        , m_reflowController{new Reflow::Controller::ReflowProcessController(
+              m_presetsHolder,
+              m_thermocoupleDataProvider,
+              Reflow::Devices::Platform::getPlatformRelayController()
+            )}
     {
     }
 
@@ -128,7 +133,7 @@ public:
     void GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
-        ret["temperature_data"] = m_thermocoupleDataProvider.getRawData();
+        ret["temperature_data"] = m_thermocoupleDataProvider->getRawData();
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }
@@ -154,7 +159,7 @@ public:
     }
 
 private:
-    Platform::ThermocoupleDataProvider m_thermocoupleDataProvider;
+    Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr m_thermocoupleDataProvider;
     Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
     Reflow::Commands::CommandsParser::Ptr m_commandsParser;
     Reflow::Controller::ReflowProcessController::Ptr m_reflowController;

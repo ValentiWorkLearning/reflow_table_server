@@ -1,16 +1,10 @@
 #pragma once
 
-#ifdef USE_ARM_TARGET_IMPLEMENTATION
-#include <implementations/thermocouple_sysfs_impl.hpp>
-#else
-#include <implementations/random_thermocouple_data_provider.hpp>
-#endif // USE_ARM_TARGET_IMPLEMENTATION
+#include <device_includes/ih_relay_controller.hpp>
+#include <device_includes/ih_thermocouple_data_provider.hpp>
 
-namespace Platform
+namespace Reflow::Devices::Platform
 {
-#ifdef USE_ARM_TARGET_IMPLEMENTATION
-    using ThermocoupleDataProvider = Devices::Thermocouple::SysFsDataProvider;
-#else
-    using ThermocoupleDataProvider = Devices::Thermocouple::RandomDataProvider;
-#endif
-}
+Reflow::Devices::Relay::RelayController::Ptr getPlatformRelayController();
+Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr getPlatformThermocoupleSensor();
+}; // namespace Reflow::Devices::Platform

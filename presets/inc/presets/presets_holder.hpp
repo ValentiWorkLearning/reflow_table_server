@@ -28,8 +28,7 @@ public:
 
         bool operator==(const StageItem& other) const noexcept
         {
-            return temperatureStep == other.temperatureStep &&
-                   stageDuration == other.stageDuration;
+            return temperatureStep == other.temperatureStep && stageDuration == other.stageDuration;
         }
     };
 
@@ -45,7 +44,8 @@ public:
 
     std::size_t numStages() const noexcept;
 
-    const StageItem& getStageItem(std::size_t stageItemIdx);
+    const StageItem& getStageItem(std::size_t stageItemIdx) const;
+    StageItem& getStageItem(std::size_t stageItemIdx);
 
 private:
     using TItemsStorage = std::vector<StageItem>;
@@ -69,8 +69,7 @@ public:
 
     const Preset::Ptr getPresetById(std::size_t presetId) const;
 
-
-    using TEnumerateCallback = std::function<void(std::size_t,const Preset::Ptr&)>;
+    using TEnumerateCallback = std::function<void(std::size_t, const Preset::Ptr&)>;
 
     void forEachPreset(TEnumerateCallback callback);
 

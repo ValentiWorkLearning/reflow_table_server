@@ -84,7 +84,12 @@ std::size_t Preset::numStages() const noexcept
     return m_presetItems.size();
 }
 
-const Preset::StageItem& Preset::getStageItem(std::size_t stageItemIdx)
+const Preset::StageItem& Preset::getStageItem(std::size_t stageItemIdx)const
+{
+    return m_presetItems.at(stageItemIdx);
+}
+
+Preset::StageItem& Preset::getStageItem(std::size_t stageItemIdx)
 {
     return m_presetItems.at(stageItemIdx);
 }

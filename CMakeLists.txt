@@ -43,27 +43,40 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
+
+set(CONAN_REQUIRED_LIBRARIES_LIST
+    jsoncpp/1.9.5
+    zlib/1.2.11
+    fmt/8.0.1
+    spdlog/1.9.2
+    gtest/1.11.0
+    boost/1.78.0
+    nlohmann_json/3.10.5
+    tl-expected/20190710
+)
+
+set(CONAN_PACKAGES_OPTIONS
+    fmt:header_only=True
+    spdlog:header_only=True
+    boost:header_only=True
+)
+
+if(CROSS_BUILD_FOR_ARM)
+    list(APPEND libgpiod/1.6.3 ${CONAN_REQUIRED_LIBRARIES_LIST})
+    list(APPEND libgpiod:enable_bindings_cxx ${CONAN_PACKAGES_OPTIONS})
+endif()
+
 conan_cmake_configure(REQUIRES
-                      jsoncpp/1.9.5
-                      zlib/1.2.11
-                      fmt/8.0.1
-                      spdlog/1.9.2
-                      gtest/1.11.0
-                      boost/1.78.0
-                      nlohmann_json/3.10.5
-                      tl-expected/20190710
+                      ${CONAN_REQUIRED_LIBRARIES_LIST}
                       GENERATORS cmake_find_package
                       IMPORTS "bin, *.dll -> ${CMAKE_CURRENT_BINARY_DIR}"
                       IMPORTS "lib, *.dylib* -> ${CMAKE_CURRENT_BINARY_DIR}"
-                      OPTIONS fmt:header_only=True
-                              spdlog:header_only=True
-                              boost:header_only=True
+                      OPTIONS ${CONAN_PACKAGES_OPTIONS}
                       )
 
 conan_cmake_autodetect(settings)
 
 if(CROSS_BUILD_FOR_ARM)
-
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
                     PROFILE ${CMAKE_CURRENT_LIST_DIR}/conan_profiles/orange_zero_profile
@@ -84,6 +97,10 @@ find_package(spdlog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(tl-expected REQUIRED)
+
+if(CROSS_BUILD_FOR_ARM)
+    find_package(gpiod REQUIRED)
+endif()
 
 add_subdirectory(drogon)
 add_subdirectory(platform)
@@ -119,6 +136,5 @@ add_custom_command(
     ${CMAKE_CURRENT_LIST_DIR}/configs/config.json
     ${CMAKE_CURRENT_BINARY_DIR}/config.json
 )
-
 enable_testing()
 add_subdirectory(tests)

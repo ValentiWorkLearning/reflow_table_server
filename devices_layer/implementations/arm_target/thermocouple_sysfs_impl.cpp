@@ -1,18 +1,18 @@
 #pragma once
 
-#include <device_includes/ih_thermocouple_data_provider.hpp>
 #include <charconv>
+#include <device_includes/ih_thermocouple_data_provider.hpp>
 #include <exception>
 #include <file_raii_guard.hpp>
 #include <fmt/format.h>
 #include <string>
 
-namespace Devices::Thermocouple
+namespace Reflow::Devices::Thermocouple
 {
-class SysFsDataProvider : public BaseThermocoupleDataProvider<SysFsDataProvider>
+class ThermocoupleDataProvider::ThermocoupleDataProviderImpl
 {
 public:
-    SysFsDataProvider() : m_fileGuard{kThermocouplePathRaw}
+    ThermocoupleDataProviderImpl() : m_fileGuard{kThermocouplePathRaw}
     {
     }
 
@@ -42,4 +42,15 @@ private:
     FileRaiiGuard m_fileGuard;
 };
 
-} // namespace Devices::Thermocouple
+std::int32_t ThermocoupleDataProvider::getRawData()
+{
+    return m_pImpl->getRawData();
+}
+ThermocoupleDataProvider::ThermocoupleDataProvider()
+    : m_pImpl{std::make_unique<ThermocoupleDataProviderImpl>()}
+{
+}
+
+ThermocoupleDataProvider::~ThermocoupleDataProvider() = default;
+
+} // namespace Reflow::Devices::Thermocouple

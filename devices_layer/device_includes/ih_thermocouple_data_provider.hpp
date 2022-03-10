@@ -1,23 +1,26 @@
 #pragma once
+#include <boost/intrusive_ptr.hpp>
+#include <boost/smart_ptr/intrusive_ref_counter.hpp>
 #include <cstdint>
+#include <memory>
 
-namespace Devices::Thermocouple
+namespace Reflow::Devices::Thermocouple
 {
 
-template <typename TImpl> class BaseThermocoupleDataProvider
+class ThermocoupleDataProvider : public boost::intrusive_ref_counter<ThermocoupleDataProvider>
 {
+public:
+    ThermocoupleDataProvider();
+    ~ThermocoupleDataProvider();
+
+    using Ptr = boost::intrusive_ptr<ThermocoupleDataProvider>;
 
 public:
-    std::int32_t getRawData()
-    {
-        return pOffspring()->getRawData();
-    }
+    std::int32_t getRawData();
 
 private:
-    auto pOffspring()
-    {
-        return static_cast<TImpl*>(this);
-    }
+    class ThermocoupleDataProviderImpl;
+    std::unique_ptr<ThermocoupleDataProviderImpl> m_pImpl;
 };
 
-}; // namespace Devices::Thermocouple
+}; // namespace Reflow::Devices::Thermocouple

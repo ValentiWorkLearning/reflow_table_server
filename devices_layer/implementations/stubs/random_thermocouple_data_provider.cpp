@@ -3,13 +3,13 @@
 #include <device_includes/ih_thermocouple_data_provider.hpp>
 #include <random>
 
-namespace Devices::Thermocouple
+namespace Reflow::Devices::Thermocouple
 {
-class RandomDataProvider : public BaseThermocoupleDataProvider<RandomDataProvider>
+class ThermocoupleDataProvider::ThermocoupleDataProviderImpl
 {
 
 public:
-    RandomDataProvider()
+    ThermocoupleDataProviderImpl()
         : m_randomGenerator{std::random_device{}()}
         , m_randomDistribution{kMinTempValue, kMaxTempValue}
     {
@@ -30,4 +30,18 @@ private:
     using TDistribution = std::uniform_int_distribution<>;
     TDistribution m_randomDistribution;
 };
+
+
+std::int32_t ThermocoupleDataProvider::getRawData()
+{
+    return m_pImpl->getRawData();
+
+}
+ ThermocoupleDataProvider::ThermocoupleDataProvider()
+    : m_pImpl{std::make_unique<ThermocoupleDataProviderImpl>()}
+{
+}
+
+ThermocoupleDataProvider::~ThermocoupleDataProvider() = default;
+
 } // namespace Devices::Thermocouple

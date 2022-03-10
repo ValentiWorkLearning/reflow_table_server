@@ -1,4 +1,4 @@
-add_library(devices_layer STATIC empty_target.cpp)
+add_library(devices_layer STATIC platform_devices/platform_device_usings.cpp)
 
 target_include_directories(
     devices_layer
@@ -13,10 +13,32 @@ if(CROSS_BUILD_FOR_ARM)
         PUBLIC
         USE_ARM_TARGET_IMPLEMENTATION
     )
+    target_sources(
+        devices_layer
+        PRIVATE
+        implementations/arm_target/relay_controller_arm_target.cpp
+        implementations/arm_target/thermocouple_sysfs_impl.cpp
+    )
 
     target_link_libraries(
         devices_layer
         PUBLIC
         platform
+        PUBLIC
+        Boost::boost
+        gpiod::gpiod
+    )
+else()
+    target_sources(devices_layer
+        PRIVATE
+        implementations/stubs/relay_controller_stub.cpp
+        implementations/stubs/random_thermocouple_data_provider.cpp
+    )
+
+        target_link_libraries(
+        devices_layer
+        PUBLIC
+        spdlog::spdlog
+        Boost::boost
     )
 endif()
