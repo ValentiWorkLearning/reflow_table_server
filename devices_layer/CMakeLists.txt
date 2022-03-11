@@ -26,6 +26,7 @@ if(CROSS_BUILD_FOR_ARM)
         platform
         PUBLIC
         Boost::boost
+        spdlog::spdlog
         libgpiod::libgpiod
         fmt::fmt
     )
@@ -36,7 +37,7 @@ else()
         implementations/stubs/random_thermocouple_data_provider.cpp
     )
 
-        target_link_libraries(
+    target_link_libraries(
         devices_layer
         PUBLIC
         spdlog::spdlog
