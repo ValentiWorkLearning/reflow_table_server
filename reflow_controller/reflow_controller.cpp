@@ -153,7 +153,8 @@ private:
             return;
         disableHeating();
         m_reflowProcessData.activeStageIndex = 0;
-        m_pActivePreset.reset(); 
+        m_pActivePreset.reset();
+        m_activePresetId = std::nullopt;
         m_isReflowRunning = false;
         m_sysTickTime.store(1ms);
         spdlog::info("Reflow process canceled");
