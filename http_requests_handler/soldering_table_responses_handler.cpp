@@ -135,6 +135,7 @@ public:
         ret["system-time"] =
             std::chrono::duration_cast<std::chrono::seconds>(m_reflowController->getSystickTime())
                 .count();
+        ret["is-reflow-running"] = m_reflowController->isRunning();
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }
