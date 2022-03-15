@@ -40,12 +40,15 @@ public:
                 }
                 else if (commandValue == kSelectPresetCommand)
                 {
-                    if (auto presetHash = parsedJson.find("preset-id");
-                        presetHash != parsedJson.end())
+                    const auto& commandPayload =
+                        parsedJson["payload"].get_ref<const nlohmann::json::object_t&>();
+
+                    if (auto presetHash = commandPayload.find("preset-id");
+                        presetHash != commandPayload.end())
                     {
                         return SelectPreset
                         {
-                            .presetId = presetHash->get<std::size_t>()
+                            .presetId = presetHash->second.get<std::size_t>()
                         };
                     }
                 }

@@ -141,8 +141,8 @@ private:
         if (!m_isReflowRunning)
             return;
         disableHeating();
-
-        m_pActivePreset.reset();
+        m_reflowProcessData.activeStageIndex = 0;
+        m_pActivePreset.reset(); 
         m_isReflowRunning = false;
         spdlog::info("Reflow process canceled");
     }
@@ -178,8 +178,7 @@ private:
                 m_reflowProcessData.activeStageIndex >= m_pActivePreset->numStages();
             if (isReflowCompleted)
             {
-                m_isReflowRunning = false;
-                disableHeating();
+                handleReflowEnd();
                 return;
             }
             else

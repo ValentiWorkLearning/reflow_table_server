@@ -97,7 +97,7 @@ class TestReflowApi(unittest.TestCase):
 
     def select_active_preset(self,preset_id):
         request_url = urllib.parse.urljoin(self.base_url, 'command')
-        command_payload = {'command': 'select-preset', 'preset-id':preset_id}
+        command_payload = {'command': 'select-preset','payload': {'preset-id':preset_id}}
         response = requests.post(request_url,data=json.dumps(command_payload))
         self.assertTrue(response.ok)
 
