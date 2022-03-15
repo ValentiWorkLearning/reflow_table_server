@@ -131,7 +131,7 @@ public:
     void GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
-        ret["temperature_data"] = m_thermocoupleDataProvider->getRawData();
+        ret["temperature-data"] = m_thermocoupleDataProvider->getRawData();
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }
