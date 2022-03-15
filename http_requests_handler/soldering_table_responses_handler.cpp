@@ -132,6 +132,9 @@ public:
     {
         Json::Value ret;
         ret["temperature-data"] = m_thermocoupleDataProvider->getRawData();
+        ret["system-time"] =
+            std::chrono::duration_cast<std::chrono::seconds>(m_reflowController->getSystickTime())
+                .count();
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }

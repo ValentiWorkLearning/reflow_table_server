@@ -63,6 +63,11 @@ public:
             .hysteresis = m_reflowProcessData.regulatorData.hysteresis};
     }
 
+    std::chrono::milliseconds getSystickTime() const
+    {
+        return m_sysTickTime;
+    }
+
 public:
     void runnable(const std::stop_token& stoken)
     {
@@ -71,7 +76,8 @@ public:
             dispatchCommandsQueue(stoken);
             processReflowStep();
             std::this_thread::sleep_for(kSystickResolution);
-            m_sysTickTime += kSystickResolution;
+            if (m_isReflowRunning)
+                m_sysTickTime.store(m_sysTickTime.load() + kSystickResolution);
         }
     }
 
@@ -144,6 +150,7 @@ private:
         m_reflowProcessData.activeStageIndex = 0;
         m_pActivePreset.reset(); 
         m_isReflowRunning = false;
+        m_sysTickTime.store(1ms);
         spdlog::info("Reflow process canceled");
     }
 
@@ -251,7 +258,8 @@ private:
         if (canCompletePreheatStage)
         {
             m_reflowProcessData.stageCompletionTimepoint =
-                m_sysTickTime + m_reflowProcessData.activePresetState->stageDuration;
+                m_sysTickTime.load() +
+                m_reflowProcessData.activePresetState->stageDuration;
             m_reflowProcessData.reflowStep = ReflowStage::kInProgress;
         }
     }
@@ -262,7 +270,7 @@ private:
             return;
 
         const bool canCompleteInProgressStage =
-            m_sysTickTime >= m_reflowProcessData.stageCompletionTimepoint;
+            m_sysTickTime.load() >= m_reflowProcessData.stageCompletionTimepoint;
         if (canCompleteInProgressStage)
         {
             m_reflowProcessData.reflowStep = ReflowStage::kStageCompleted;
@@ -281,7 +289,7 @@ private:
     Reflow::Devices::Relay::RelayController::Ptr m_pRelayController;
 
     ReflowProcessData m_reflowProcessData;
-    std::chrono::milliseconds m_sysTickTime{};
+    std::atomic<std::chrono::milliseconds> m_sysTickTime{};
 };
 
 void ReflowProcessController::postCommand(Reflow::Commands::TCommandVariant commandContext)
@@ -307,6 +315,11 @@ void ReflowProcessController::setRegulatorParams(const RegulatorParams& regulato
 RegulatorParams ReflowProcessController::getRegulatorParams() const
 {
     return m_pImpl->getRegulatorParams();
+}
+
+std::chrono::milliseconds ReflowProcessController::getSystickTime() const
+{
+    return m_pImpl->getSystickTime();
 }
 
 ReflowProcessController::ReflowProcessController(
