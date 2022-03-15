@@ -34,6 +34,7 @@ public:
     void setRegulatorParams(const RegulatorParams& regulatorParams);
     RegulatorParams getRegulatorParams() const;
     std::chrono::milliseconds getSystickTime() const;
+    std::optional<std::size_t> getActiveReflowPresetId() const;
 
 public:
     using Ptr = boost::intrusive_ptr<ReflowProcessController>;

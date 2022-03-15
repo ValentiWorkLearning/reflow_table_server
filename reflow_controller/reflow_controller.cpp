@@ -68,6 +68,11 @@ public:
         return m_sysTickTime;
     }
 
+    std::optional<std::size_t> getActiveReflowPresetId() const
+    {
+        return m_activePresetId.load();
+    }
+
 public:
     void runnable(const std::stop_token& stoken)
     {
@@ -158,6 +163,7 @@ private:
     {
         if (m_isReflowRunning)
             return;
+        m_activePresetId = choice.presetId;
         m_pActivePreset = m_pPresetsHolder->getPresetById(choice.presetId);
     }
 
@@ -285,6 +291,8 @@ private:
 
     Reflow::Presets::PresetsHolder::Ptr m_pPresetsHolder;
     Reflow::Presets::Preset::Ptr m_pActivePreset;
+    std::atomic<std::optional<std::size_t>> m_activePresetId;
+
     Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr m_pTemperatureSensor;
     Reflow::Devices::Relay::RelayController::Ptr m_pRelayController;
 
@@ -321,6 +329,12 @@ std::chrono::milliseconds ReflowProcessController::getSystickTime() const
 {
     return m_pImpl->getSystickTime();
 }
+
+std::optional<std::size_t> ReflowProcessController::getActiveReflowPresetId() const
+{
+    return m_pImpl->getActiveReflowPresetId();
+}
+
 
 ReflowProcessController::ReflowProcessController(
     Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,

@@ -136,6 +136,9 @@ public:
             std::chrono::duration_cast<std::chrono::seconds>(m_reflowController->getSystickTime())
                 .count();
         ret["is-reflow-running"] = m_reflowController->isRunning();
+        auto activePreset = m_reflowController->getActiveReflowPresetId();
+        ret["active-preset-id"] = activePreset.has_value() ? activePreset.value() : Json::nullValue;
+
         auto resp = HttpResponse::newHttpJsonResponse(ret);
         callback(resp);
     }
