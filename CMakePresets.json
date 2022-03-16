@@ -27,7 +27,8 @@
       "cacheVariables": {
           "CMAKE_BUILD_TYPE": "Debug",
           "CMAKE_TOOLCHAIN_FILE": "/home/valenti/Development/Embedded/exercise8/build_orange_zero_image/host/share/buildroot/toolchainfile.cmake",
-          "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+          "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
+          "CROSS_BUILD_FOR_ARM": "ON"
       }
   }
   ]
