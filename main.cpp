@@ -1,6 +1,7 @@
 #include <http_requests_handler/soldering_table_responses_handler.hpp>
 #include <drogon/drogon.h>
 #include <memory>
+#include <common/executable_running_location.hpp>
 
 using namespace drogon;
 
@@ -11,7 +12,7 @@ void dumpAvailableEndpoints()
         std::cout << std::get<0>(hdl) << std::endl;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     dumpAvailableEndpoints();
 
@@ -19,7 +20,7 @@ int main()
     reflowRequestsHandler->postInitCall();
 
     app().registerController(reflowRequestsHandler);
-    app().loadConfigFile("./config.json").run();
+    app().loadConfigFile(Utils::Executable::GetExecutableLocation(argv[0])/"config.json").run();
 
     return 0;
 }
