@@ -87,7 +87,7 @@ public:
     }
 
 private:
-    static constexpr inline auto kSystickResolution = 10ms;
+    static constexpr inline auto kSystickResolution = 250ms;
 
 private:
     enum class ReflowStage

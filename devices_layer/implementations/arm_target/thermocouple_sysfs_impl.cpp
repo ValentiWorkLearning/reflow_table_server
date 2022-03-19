@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 #include <string>
 #include <iio_format_parser.hpp>
+#include <spdlog/spdlog.h>
 
 #include <boost/lexical_cast.hpp>
 
@@ -26,8 +27,9 @@ public:
             m_fileGuard.readFrom(std::span(kThermoCoupleData.data(), kThermoCoupleData.size()));
         kThermoCoupleData[dataSize + 1] = '\0';
         auto readFrom = std::string_view(kThermoCoupleData.data());
+        spdlog::info("Read data from thermocouple:{}",readFrom);
 
-        std::uint32_t result;
+        std::int32_t result;
         auto [ptr, error]{
             std::from_chars(readFrom.data(), readFrom.data() + readFrom.size(), result)};
 
