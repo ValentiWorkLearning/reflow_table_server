@@ -128,7 +128,7 @@ target_include_directories(
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/devices_layer
 )
-target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler drogon)
+target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler drogon utils)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR  CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options( app_test_drogon_server PUBLIC -g2 )
