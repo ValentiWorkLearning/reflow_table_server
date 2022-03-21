@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
     reflowRequestsHandler->postInitCall();
 
     app().registerController(reflowRequestsHandler);
-    app().loadConfigFile(Utils::Executable::GetExecutableLocation(argv[0])/"config.json").run();
+    auto configPath{Utils::Executable::GetExecutableLocation(argv[0]) / "config.json"};
+    app().loadConfigFile(configPath.string()).run();
 
     return 0;
 }
