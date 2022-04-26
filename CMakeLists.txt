@@ -91,7 +91,7 @@ else()
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
                     REMOTE conancenter
-                    PROFILE ${CMAKE_CURRENT_LIST_DIR}/conan_profiles/${CMAKE_CXX_COMPILER_ID}/profile
+                    PROFILE default
                     SETTINGS ${settings})
 endif()
 
@@ -143,3 +143,8 @@ add_custom_command(
 )
 enable_testing()
 add_subdirectory(tests)
+
+install(TARGETS app_test_drogon_server DESTINATION bin)
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/config.json"
+  DESTINATION bin
+  )

@@ -16,3 +16,7 @@ target_link_libraries(
 )
 
 target_compile_features(reflow_controller PUBLIC cxx_std_20)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+	target_link_options(reflow_controller PUBLIC -latomic)
+endif()

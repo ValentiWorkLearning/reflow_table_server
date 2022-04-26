@@ -14,13 +14,13 @@ using namespace std::chrono_literals;
 namespace Reflow::Controller
 {
 class ReflowProcessController::ReflowProcessControllerImpl
-        : public std::enable_shared_from_this<ReflowProcessController::ReflowProcessControllerImpl>
+    : public std::enable_shared_from_this<ReflowProcessController::ReflowProcessControllerImpl>
 {
 public:
     ReflowProcessControllerImpl(
-            Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-            Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocouple,
-            Reflow::Devices::Relay::RelayController::Ptr pRelayController)
+        Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
+        Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocouple,
+        Reflow::Devices::Relay::RelayController::Ptr pRelayController)
         : m_pPresetsHolder{pPresetsHolder}
         , m_pTemperatureSensor{pThermocouple}
         , m_pRelayController{pRelayController}
@@ -42,12 +42,12 @@ public:
     void postInitCall()
     {
         m_workerThread =
-                std::make_unique<std::jthread>([pWeakThis = weak_from_this()](std::stop_token stoken) {
-            if (auto pStrongThis = pWeakThis.lock())
-            {
-                pStrongThis->runnable(stoken);
-            }
-        });
+            std::make_unique<std::jthread>([pWeakThis = weak_from_this()](std::stop_token stoken) {
+                if (auto pStrongThis = pWeakThis.lock())
+                {
+                    pStrongThis->runnable(stoken);
+                }
+            });
     }
 
     void setRegulatorParams(const RegulatorParams& regulatorParams)
@@ -60,7 +60,7 @@ public:
     {
         return RegulatorParams{
             .k = m_reflowProcessData.regulatorData.k,
-                    .hysteresis = m_reflowProcessData.regulatorData.hysteresis};
+            .hysteresis = m_reflowProcessData.regulatorData.hysteresis};
     }
 
     std::chrono::milliseconds getSystickTime() const
@@ -73,21 +73,24 @@ public:
         return m_activePresetId.load();
     }
 
-
-    boost::signals2::connection subscribeOnReflowProcessStarted(TObservableCallback observerCallback)
+    boost::signals2::connection subscribeOnReflowProcessStarted(
+        TObservableCallback observerCallback)
     {
         return m_onReflowProcessStarted.connect(observerCallback);
     }
-    boost::signals2::connection subscribeOnReflowStageCompleted(TObservableCallback observerCallback)
+    boost::signals2::connection subscribeOnReflowStageCompleted(
+        TObservableCallback observerCallback)
     {
         return m_onReflowStageCompleted.connect(observerCallback);
     }
-    boost::signals2::connection subscribeOnReflowProcessCompleted(TObservableCallback observerCallback)
+    boost::signals2::connection subscribeOnReflowProcessCompleted(
+        TObservableCallback observerCallback)
     {
         return m_onReflowProcessCompleted.connect(observerCallback);
     }
 
-    boost::signals2::connection subscribeOnProcessingRegulatorStage(TRegulatorObserverCallback observerCallback)
+    boost::signals2::connection subscribeOnProcessingRegulatorStage(
+        TRegulatorObserverCallback observerCallback)
     {
         return m_onRegulatorStageProcessing.connect(observerCallback);
     }
@@ -140,210 +143,208 @@ private:
     void dispatchCommandsQueue(const std::stop_token& stoken)
     {
         auto commandsVisitor = Overload{
-                [this](Reflow::Commands::StartReflow) { handleReflowStart(); },
-        [this](Reflow::Commands::StopReflow) { handleReflowEnd(); },
-        [this](Reflow::Commands::SelectPreset presetChoice) {
-            handlePresetSelection(presetChoice);
-        }};
+            [this](Reflow::Commands::StartReflow) { handleReflowStart(); },
+            [this](Reflow::Commands::StopReflow) { handleReflowEnd(); },
+            [this](Reflow::Commands::SelectPreset presetChoice) {
+                handlePresetSelection(presetChoice);
+            }};
 
-    while (auto operation{m_requestsQueue.getOperation()})
-{
-    if (stoken.stop_requested())
-    return;
-
-    std::visit(commandsVisitor, operation.value());
-}
-}
-
-void handleReflowStart()
-{
-    if (!m_pActivePreset)
-    {
-        spdlog::error("Can't get the active soldering preset");
-        return;
-    }
-    m_isReflowRunning = true;
-
-    m_onReflowProcessStarted();
-}
-
-void handleReflowEnd()
-{
-    if (!m_isReflowRunning)
-        return;
-    disableHeating();
-    m_reflowProcessData.activeStageIndex = 0;
-    m_pActivePreset.reset();
-    m_activePresetId = std::nullopt;
-    m_isReflowRunning = false;
-    m_sysTickTime.store(1ms);
-    m_onReflowProcessCompleted();
-}
-
-void handlePresetSelection(Reflow::Commands::SelectPreset choice)
-{
-    if (m_isReflowRunning)
-        return;
-    m_activePresetId = choice.presetId;
-    m_pActivePreset = m_pPresetsHolder->getPresetById(choice.presetId);
-}
-
-void processReflowStep()
-{
-    if (!m_pActivePreset)
-        return;
-    if (!m_isReflowRunning)
-        return;
-
-    switch (m_reflowProcessData.reflowStep)
-    {
-    case ReflowStage::kInitStep:
-        handleInitStep();
-        break;
-    case ReflowStage::kPreheat:
-        handlePreheatState();
-        break;
-    case ReflowStage::kInProgress:
-        handleInProgressState();
-        break;
-    case ReflowStage::kStageCompleted:
-        ++m_reflowProcessData.activeStageIndex;
-        const bool isReflowCompleted =
-                m_reflowProcessData.activeStageIndex >= m_pActivePreset->numStages();
-        if (isReflowCompleted)
+        while (auto operation{m_requestsQueue.getOperation()})
         {
-            handleReflowEnd();
+            if (stoken.stop_requested())
+                return;
+
+            std::visit(commandsVisitor, operation.value());
+        }
+    }
+
+    void handleReflowStart()
+    {
+        if (!m_pActivePreset)
+        {
+            spdlog::error("Can't get the active soldering preset");
             return;
+        }
+        m_isReflowRunning = true;
+
+        m_onReflowProcessStarted();
+    }
+
+    void handleReflowEnd()
+    {
+        if (!m_isReflowRunning)
+            return;
+        disableHeating();
+        m_reflowProcessData.activeStageIndex = 0;
+        m_pActivePreset.reset();
+        m_activePresetId = std::nullopt;
+        m_isReflowRunning = false;
+        m_sysTickTime.store(1ms);
+        m_onReflowProcessCompleted();
+    }
+
+    void handlePresetSelection(Reflow::Commands::SelectPreset choice)
+    {
+        if (m_isReflowRunning)
+            return;
+        m_activePresetId = choice.presetId;
+        m_pActivePreset = m_pPresetsHolder->getPresetById(choice.presetId);
+    }
+
+    void processReflowStep()
+    {
+        if (!m_pActivePreset)
+            return;
+        if (!m_isReflowRunning)
+            return;
+
+        switch (m_reflowProcessData.reflowStep)
+        {
+        case ReflowStage::kInitStep:
+            handleInitStep();
+            break;
+        case ReflowStage::kPreheat:
+            handlePreheatState();
+            break;
+        case ReflowStage::kInProgress:
+            handleInProgressState();
+            break;
+        case ReflowStage::kStageCompleted:
+            ++m_reflowProcessData.activeStageIndex;
+            const bool isReflowCompleted =
+                m_reflowProcessData.activeStageIndex >= m_pActivePreset->numStages();
+            if (isReflowCompleted)
+            {
+                handleReflowEnd();
+                return;
+            }
+            else
+            {
+                m_reflowProcessData.reflowStep = ReflowStage::kInitStep;
+            }
+            break;
+        }
+        processRelayRegulatorStep();
+    }
+
+    void processRelayRegulatorStep()
+    {
+        if (!m_reflowProcessData.activePresetState)
+        {
+            m_pRelayController->disable();
+            return;
+        }
+
+        auto currentTemperature = m_pTemperatureSensor->getRawData();
+        auto k = m_reflowProcessData.regulatorData.k;
+        auto dt = m_reflowProcessData.regulatorData.dt;
+        auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
+
+        float currentSignalValue{};
+        if (dt != 0 && k != 0)
+        {
+            currentSignalValue =
+                currentTemperature +
+                (currentTemperature - m_reflowProcessData.regulatorData.previousSignalValue) * k /
+                    dt;
+            m_reflowProcessData.regulatorData.previousSignalValue = currentSignalValue;
         }
         else
         {
-            m_reflowProcessData.reflowStep = ReflowStage::kInitStep;
+            currentSignalValue = currentTemperature;
         }
-        break;
-    }
-    processRelayRegulatorStep();
-}
 
-void processRelayRegulatorStep()
-{
-    if (!m_reflowProcessData.activePresetState)
-    {
-        m_pRelayController->disable();
-        return;
-    }
-
-    auto currentTemperature = m_pTemperatureSensor->getRawData();
-    auto k = m_reflowProcessData.regulatorData.k;
-    auto dt = m_reflowProcessData.regulatorData.dt;
-    auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
-
-    float currentSignalValue{};
-    if (dt != 0 && k != 0)
-    {
-        currentSignalValue =
-                currentTemperature +
-                (currentTemperature - m_reflowProcessData.regulatorData.previousSignalValue) * k /
-                dt;
-        m_reflowProcessData.regulatorData.previousSignalValue = currentSignalValue;
-    }
-    else
-    {
-        currentSignalValue = currentTemperature;
-    }
-
-    auto presetState = m_reflowProcessData.activePresetState;
-    const bool isUnderHysteresis =
+        auto presetState = m_reflowProcessData.activePresetState;
+        const bool isUnderHysteresis =
             currentSignalValue < (presetState->temperatureStep - hysteresis) / 2;
 
-    const bool isOverHysteresis =
+        spdlog::info("Under:{}", (presetState->temperatureStep - hysteresis) / 2);
+
+        const bool isOverHysteresis =
             currentSignalValue > (presetState->temperatureStep + hysteresis) / 2;
+        spdlog::info("Over: {}", (presetState->temperatureStep + hysteresis) / 2);
+        m_onRegulatorStageProcessing(RegulatorStageContext{
+            .dt = dt,
+            .k = k,
+            .currentSignalValue = currentSignalValue,
+            .isUnderHysteresis = isUnderHysteresis,
+            .isOverHysteresis = isOverHysteresis,
+        }
 
+        );
+        if (isUnderHysteresis)
+            m_pRelayController->enable();
+        else if (isOverHysteresis)
+            m_pRelayController->disable();
+    }
 
-    m_onRegulatorStageProcessing(
-                RegulatorStageContext
-                {
-                    .dt = dt,
-                    .currentSignalValue = currentSignalValue,
-                    .isUnderHysteresis =isUnderHysteresis,
-                    .isOverHysteresis = isOverHysteresis,
-                }
-
-                );
-    if (isUnderHysteresis)
-        m_pRelayController->enable();
-    else if (isOverHysteresis)
+    void disableHeating()
+    {
         m_pRelayController->disable();
-}
+    }
 
-void disableHeating()
-{
-    m_pRelayController->disable();
-}
-
-void handleInitStep()
-{
-    m_reflowProcessData.activePresetState =
+    void handleInitStep()
+    {
+        m_reflowProcessData.activePresetState =
             &m_pActivePreset->getStageItem(m_reflowProcessData.activeStageIndex);
 
-    m_reflowProcessData.reflowStep = ReflowStage::kPreheat;
-}
-void handlePreheatState()
-{
+        m_reflowProcessData.reflowStep = ReflowStage::kPreheat;
+    }
+    void handlePreheatState()
+    {
 
-    auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
-    auto currentTemperature = m_pTemperatureSensor->getRawData();
-    auto presetExpectedTemperature = m_reflowProcessData.activePresetState->temperatureStep;
+        auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
+        auto currentTemperature = m_pTemperatureSensor->getRawData();
+        auto presetExpectedTemperature = m_reflowProcessData.activePresetState->temperatureStep;
 
-    const bool canCompletePreheatStage =
-            (presetExpectedTemperature - hysteresis )<=currentTemperature &&
+        const bool canCompletePreheatStage =
+            (presetExpectedTemperature - hysteresis) <= currentTemperature &&
             (presetExpectedTemperature + hysteresis) >= currentTemperature;
 
-
-    if (canCompletePreheatStage)
-    {
-        m_reflowProcessData.stageCompletionTimepoint =
-                m_sysTickTime.load() +
-                m_reflowProcessData.activePresetState->stageDuration;
-        m_reflowProcessData.reflowStep = ReflowStage::kInProgress;
+        if (canCompletePreheatStage)
+        {
+            m_reflowProcessData.stageCompletionTimepoint =
+                m_sysTickTime.load() + m_reflowProcessData.activePresetState->stageDuration;
+            m_reflowProcessData.reflowStep = ReflowStage::kInProgress;
+        }
     }
-}
 
-void handleInProgressState()
-{
-    if (!m_reflowProcessData.activePresetState)
-        return;
+    void handleInProgressState()
+    {
+        if (!m_reflowProcessData.activePresetState)
+            return;
 
-    const bool canCompleteInProgressStage =
+        const bool canCompleteInProgressStage =
             m_sysTickTime.load() >= m_reflowProcessData.stageCompletionTimepoint;
-    if (canCompleteInProgressStage)
-    {
-        m_reflowProcessData.reflowStep = ReflowStage::kStageCompleted;
+        if (canCompleteInProgressStage)
+        {
+            m_reflowProcessData.reflowStep = ReflowStage::kStageCompleted;
+        }
     }
-}
 
 private:
-using TNotifySignal = boost::signals2::signal<void()>;
-using TRegulatorSignal = boost::signals2::signal<void(const RegulatorStageContext&)>;
+    using TNotifySignal = boost::signals2::signal<void()>;
+    using TRegulatorSignal = boost::signals2::signal<void(const RegulatorStageContext&)>;
 
-TNotifySignal m_onReflowProcessStarted;
-TNotifySignal m_onReflowProcessCompleted;
-TNotifySignal m_onReflowStageCompleted;
-TRegulatorSignal m_onRegulatorStageProcessing;
+    TNotifySignal m_onReflowProcessStarted;
+    TNotifySignal m_onReflowProcessCompleted;
+    TNotifySignal m_onReflowStageCompleted;
+    TRegulatorSignal m_onRegulatorStageProcessing;
 
-std::unique_ptr<std::jthread> m_workerThread;
+    std::unique_ptr<std::jthread> m_workerThread;
 
-std::atomic_bool m_isReflowRunning{false};
-RequestsQueue m_requestsQueue;
+    std::atomic_bool m_isReflowRunning{false};
+    RequestsQueue m_requestsQueue;
 
-Reflow::Presets::PresetsHolder::Ptr m_pPresetsHolder;
-Reflow::Presets::Preset::Ptr m_pActivePreset;
-std::atomic<std::optional<std::size_t>> m_activePresetId;
+    Reflow::Presets::PresetsHolder::Ptr m_pPresetsHolder;
+    Reflow::Presets::Preset::Ptr m_pActivePreset;
+    std::atomic<std::optional<std::size_t>> m_activePresetId;
 
-Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr m_pTemperatureSensor;
-Reflow::Devices::Relay::RelayController::Ptr m_pRelayController;
+    Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr m_pTemperatureSensor;
+    Reflow::Devices::Relay::RelayController::Ptr m_pRelayController;
 
-ReflowProcessData m_reflowProcessData;
-std::atomic<std::chrono::milliseconds> m_sysTickTime{};
+    ReflowProcessData m_reflowProcessData;
+    std::atomic<std::chrono::milliseconds> m_sysTickTime{};
 };
 
 void ReflowProcessController::postCommand(Reflow::Commands::TCommandVariant commandContext)
@@ -381,33 +382,36 @@ std::optional<std::size_t> ReflowProcessController::getActiveReflowPresetId() co
     return m_pImpl->getActiveReflowPresetId();
 }
 
-boost::signals2::connection ReflowProcessController::subscribeOnReflowProcessStarted(TObservableCallback observerCallback)
+boost::signals2::connection ReflowProcessController::subscribeOnReflowProcessStarted(
+    TObservableCallback observerCallback)
 {
     return m_pImpl->subscribeOnReflowProcessStarted(observerCallback);
 }
-boost::signals2::connection ReflowProcessController::subscribeOnReflowStageCompleted(TObservableCallback observerCallback)
+boost::signals2::connection ReflowProcessController::subscribeOnReflowStageCompleted(
+    TObservableCallback observerCallback)
 {
     return m_pImpl->subscribeOnReflowStageCompleted(observerCallback);
 }
-boost::signals2::connection ReflowProcessController::subscribeOnReflowProcessCompleted(TObservableCallback observerCallback)
+boost::signals2::connection ReflowProcessController::subscribeOnReflowProcessCompleted(
+    TObservableCallback observerCallback)
 {
     return m_pImpl->subscribeOnReflowProcessCompleted(observerCallback);
 }
 
-boost::signals2::connection ReflowProcessController::subscribeOnRegulatorProcessing(TRegulatorObserverCallback observerCallback)
+boost::signals2::connection ReflowProcessController::subscribeOnRegulatorProcessing(
+    TRegulatorObserverCallback observerCallback)
 {
     return m_pImpl->subscribeOnProcessingRegulatorStage(observerCallback);
 }
 
-
 ReflowProcessController::ReflowProcessController(
-        Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-        Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocoupleData,
-        Reflow::Devices::Relay::RelayController::Ptr pRelayController)
+    Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
+    Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocoupleData,
+    Reflow::Devices::Relay::RelayController::Ptr pRelayController)
     : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(
-                  pPresetsHolder,
-                  pThermocoupleData,
-                  pRelayController)}
+          pPresetsHolder,
+          pThermocoupleData,
+          pRelayController)}
 {
 }
 ReflowProcessController::~ReflowProcessController() = default;
