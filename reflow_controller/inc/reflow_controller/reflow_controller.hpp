@@ -7,6 +7,7 @@
 #include <platform_devices/platform_device_usings.hpp>
 #include <presets/presets_holder.hpp>
 #include <boost/signals2.hpp>
+#include <optional>
 
 namespace Reflow::Controller
 {
@@ -23,7 +24,8 @@ class ReflowProcessController : public boost::intrusive_ref_counter<ReflowProces
 public:
     ReflowProcessController(
             Reflow::Presets::PresetsHolder::Ptr presetsHolder,
-            Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocouple,
+            Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pThermocouple,
+            Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pSurroundingTemperature,
             Reflow::Devices::Relay::RelayController::Ptr pRelayController);
     ~ReflowProcessController();
 

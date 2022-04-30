@@ -19,10 +19,12 @@ class ReflowProcessController::ReflowProcessControllerImpl
 public:
     ReflowProcessControllerImpl(
         Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-        Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocouple,
+        Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pThermocouple,
+        Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pSurroundingTemperature,
         Reflow::Devices::Relay::RelayController::Ptr pRelayController)
         : m_pPresetsHolder{pPresetsHolder}
         , m_pTemperatureSensor{pThermocouple}
+        , m_pSurroundingTemperatureSensor{pSurroundingTemperature}
         , m_pRelayController{pRelayController}
     {
         m_reflowProcessData.regulatorData.dt = kSystickResolution.count();
@@ -340,7 +342,9 @@ private:
     Reflow::Presets::Preset::Ptr m_pActivePreset;
     std::atomic<std::optional<std::size_t>> m_activePresetId;
 
-    Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr m_pTemperatureSensor;
+    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_pTemperatureSensor;
+    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_pSurroundingTemperatureSensor;
+
     Reflow::Devices::Relay::RelayController::Ptr m_pRelayController;
 
     ReflowProcessData m_reflowProcessData;
@@ -406,11 +410,13 @@ boost::signals2::connection ReflowProcessController::subscribeOnRegulatorProcess
 
 ReflowProcessController::ReflowProcessController(
     Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-    Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr pThermocoupleData,
+    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pThermocoupleData,
+    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pSurroundingSensor,
     Reflow::Devices::Relay::RelayController::Ptr pRelayController)
     : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(
           pPresetsHolder,
           pThermocoupleData,
+          pSurroundingSensor,
           pRelayController)}
 {
 }

@@ -22,11 +22,14 @@ class ReflowController::ReflowControllerImpl
 public:
     ReflowControllerImpl()
         : m_thermocoupleDataProvider{Reflow::Devices::Platform::getPlatformThermocoupleSensor()}
+        , m_surroundingTemperatureSensor{Reflow::Devices::Platform::
+                                             getPlatformSurroundingTemperatureSensor()}
         , m_presetsHolder{new Reflow::Presets::PresetsHolder()}
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
         , m_reflowController{new Reflow::Controller::ReflowProcessController(
               m_presetsHolder,
               m_thermocoupleDataProvider,
+              m_surroundingTemperatureSensor,
               Reflow::Devices::Platform::getPlatformRelayController())}
     {
     }
@@ -148,6 +151,7 @@ public:
     {
         Json::Value ret;
         ret["temperature-data"] = m_thermocoupleDataProvider->getRawData();
+        ret["surrounding-temperature"] = m_surroundingTemperatureSensor->getRawData();
         ret["system-time"] =
             std::chrono::duration_cast<std::chrono::seconds>(m_reflowController->getSystickTime())
                 .count();
@@ -215,7 +219,8 @@ public:
     }
 
 private:
-    Reflow::Devices::Thermocouple::ThermocoupleDataProvider::Ptr m_thermocoupleDataProvider;
+    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_thermocoupleDataProvider;
+    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_surroundingTemperatureSensor;
     Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
     Reflow::Commands::CommandsParser::Ptr m_commandsParser;
     Reflow::Controller::ReflowProcessController::Ptr m_reflowController;

@@ -18,6 +18,7 @@ if(CROSS_BUILD_FOR_ARM)
         PRIVATE
         implementations/arm_target/relay_controller_arm_target.cpp
         implementations/arm_target/thermocouple_sysfs_impl.cpp
+        implementations/arm_target/surrounding_sensor_arm_target.cpp
     )
 
     target_link_libraries(

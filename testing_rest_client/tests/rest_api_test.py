@@ -11,7 +11,7 @@ class TestReflowApi(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.base_url = 'http://localhost:8086/api/v1/ReflowController/'
+        cls.base_url = 'http://192.168.0.116:8086/api/v1/ReflowController/'
 
     def test_ping_pong(self):
         response = requests.get(urllib.parse.urljoin(self.base_url,'ping-pong'))
@@ -58,7 +58,9 @@ class TestReflowApi(unittest.TestCase):
         regulator_params = {'hysteresis':3, 'k':1.0}
         self.set_regulator_params(regulator_params)
         params_to_check = self.get_regulator_params()
-        self.assertEqual(regulator_params,params_to_check)
+
+        self.assertEqual(regulator_params['hysteresis'],params_to_check['hysteresis'])
+        self.assertEqual(regulator_params['k'],params_to_check['k'])
 
     def create_preset_with_name(self, preset_name):
         payload = {'preset-name':preset_name}
