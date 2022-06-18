@@ -53,6 +53,7 @@ set(CONAN_REQUIRED_LIBRARIES_LIST
     boost/1.78.0
     nlohmann_json/3.10.5
     tl-expected/20190710
+    libmodbus/3.1.6
 )
 
 set(CONAN_PACKAGES_OPTIONS
@@ -102,6 +103,7 @@ find_package(spdlog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(tl-expected REQUIRED)
+find_package(libmodbus REQUIRED)
 
 if(CROSS_BUILD_FOR_ARM)
     find_package(libgpiod REQUIRED)
