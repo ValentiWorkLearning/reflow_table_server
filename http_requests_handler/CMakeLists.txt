@@ -14,7 +14,7 @@ target_link_libraries(
 	reflow_controller
 	utils
 	PRIVATE
-	drogon
+        Drogon::Drogon
 	fmt::fmt
 	spdlog::spdlog
 	nlohmann_json::nlohmann_json

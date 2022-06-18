@@ -3,18 +3,10 @@ project (drogon_test C CXX ASM)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-# DROGON OPTIONS
-set(BUILD_POSTGRESQL OFF)
-set(LIBPQ_BATCH_MODE OFF)
-set(BUILD_MYSQL OFF)
-set(BUILD_SQLITE OFF)
-set(BUILD_REDIS OFF)
-set(BUILD_BROTLI OFF)
-
 set(CMAKE_CXX_STANDARD 20) 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(CROSS_BUILD_FOR_ARM OFF)
+option(CROSS_BUILD_FOR_ARM ON)
 option(BUILD_WITH_IIO_SUPPORT OFF)
 
 if(CROSS_BUILD_FOR_ARM)
@@ -45,12 +37,11 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 
 set(CONAN_REQUIRED_LIBRARIES_LIST
-    jsoncpp/1.9.5
-    zlib/1.2.11
+    drogon/1.7.5
     fmt/8.0.1
     spdlog/1.9.2
     gtest/1.11.0
-    boost/1.78.0
+    boost/1.79.0
     nlohmann_json/3.10.5
     tl-expected/20190710
     libmodbus/3.1.6
@@ -60,6 +51,7 @@ set(CONAN_PACKAGES_OPTIONS
     fmt:header_only=True
     spdlog:header_only=True
     boost:header_only=True
+    drogon:with_orm=False
 )
 
 if(CROSS_BUILD_FOR_ARM)
@@ -96,20 +88,19 @@ conan_cmake_install(PATH_OR_REFERENCE .
                     SETTINGS ${settings})
 endif()
 
-find_package(jsoncpp REQUIRED)
-find_package(ZLIB REQUIRED)
+
 find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(tl-expected REQUIRED)
 find_package(libmodbus REQUIRED)
+find_package(Drogon REQUIRED)
 
 if(CROSS_BUILD_FOR_ARM)
     find_package(libgpiod REQUIRED)
 endif()
 
-add_subdirectory(drogon)
 add_subdirectory(platform)
 add_subdirectory(devices_layer)
 add_subdirectory(http_requests_handler)
@@ -130,7 +121,7 @@ target_include_directories(
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/devices_layer
 )
-target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler drogon utils)
+target_link_libraries(app_test_drogon_server PRIVATE reflow_requests_handler Drogon::Drogon utils)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR  CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options( app_test_drogon_server PUBLIC -g2 )

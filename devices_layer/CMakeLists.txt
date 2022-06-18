@@ -8,7 +8,7 @@ target_include_directories(
 target_compile_features(devices_layer PUBLIC cxx_std_20)
 
 if(CROSS_BUILD_FOR_ARM)
-	target_compile_definitions(
+    target_compile_definitions(
         devices_layer
         PUBLIC
         USE_ARM_TARGET_IMPLEMENTATION
@@ -32,7 +32,8 @@ if(CROSS_BUILD_FOR_ARM)
         fmt::fmt
     )
 else()
-    target_sources(devices_layer
+    target_sources(
+        devices_layer
         PRIVATE
         implementations/stubs/relay_controller_stub.cpp
         implementations/stubs/random_thermocouple_data_provider.cpp
