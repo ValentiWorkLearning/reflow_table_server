@@ -3,16 +3,16 @@
 #include <memory>
 #include <common/executable_running_location.hpp>
 
-using namespace drogon;
+ using namespace drogon;
 
-void dumpAvailableEndpoints()
+ void dumpAvailableEndpoints()
 {
     auto hdls = drogon::app().getHandlersInfo();
     for (const auto& hdl : hdls)
         std::cout << std::get<0>(hdl) << std::endl;
 }
 
-int main(int argc, char *argv[])
+ int main(int argc, char *argv[])
 {
     dumpAvailableEndpoints();
 
