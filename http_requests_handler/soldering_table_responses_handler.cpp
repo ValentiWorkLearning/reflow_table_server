@@ -2,7 +2,6 @@
 
 #include "request_utils.hpp"
 #include <commands/commands_parser.hpp>
-#include <platform_devices/platform_device_usings.hpp>
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
 
@@ -13,6 +12,7 @@
 #include <spdlog/spdlog.h>
 
 #include <common/overloaded.hpp>
+#include <modbus_proxy/modbus_proxy.hpp>
 
 namespace api::v1
 {
@@ -21,16 +21,12 @@ class ReflowController::ReflowControllerImpl
 {
 public:
     ReflowControllerImpl()
-        : m_thermocoupleDataProvider{Reflow::Devices::Platform::getPlatformThermocoupleSensor()}
-        , m_surroundingTemperatureSensor{Reflow::Devices::Platform::
-                                             getPlatformSurroundingTemperatureSensor()}
-        , m_presetsHolder{new Reflow::Presets::PresetsHolder()}
+        : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
         , m_reflowController{new Reflow::Controller::ReflowProcessController(
               m_presetsHolder,
-              m_thermocoupleDataProvider,
-              m_surroundingTemperatureSensor,
-              Reflow::Devices::Platform::getPlatformRelayController())}
+              new ModbusProxyNs::ModbusRequestsProxy())
+              }
     {
     }
 
@@ -150,8 +146,8 @@ public:
     void GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
-        ret["temperature-data"] = m_thermocoupleDataProvider->getRawData();
-        ret["surrounding-temperature"] = m_surroundingTemperatureSensor->getRawData();
+        ret["temperature-data"] = m_reflowController->getTableTemperature();
+        ret["surrounding-temperature"] = m_reflowController->getSurroundingTemperature();
         ret["system-time"] =
             std::chrono::duration_cast<std::chrono::seconds>(m_reflowController->getSystickTime())
                 .count();
@@ -219,8 +215,6 @@ public:
     }
 
 private:
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_thermocoupleDataProvider;
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_surroundingTemperatureSensor;
     Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
     Reflow::Commands::CommandsParser::Ptr m_commandsParser;
     Reflow::Controller::ReflowProcessController::Ptr m_reflowController;

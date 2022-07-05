@@ -2,6 +2,7 @@
 #include <common/overloaded.hpp>
 #include <reflow_controller/reflow_controller.hpp>
 
+#include <modbus_proxy/modbus_address_constants.hpp>
 #include <reflow_controller/requests_queue.hpp>
 
 #include <spdlog/spdlog.h>
@@ -19,13 +20,8 @@ class ReflowProcessController::ReflowProcessControllerImpl
 public:
     ReflowProcessControllerImpl(
         Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-        Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pThermocouple,
-        Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pSurroundingTemperature,
-        Reflow::Devices::Relay::RelayController::Ptr pRelayController)
-        : m_pPresetsHolder{pPresetsHolder}
-        , m_pTemperatureSensor{pThermocouple}
-        , m_pSurroundingTemperatureSensor{pSurroundingTemperature}
-        , m_pRelayController{pRelayController}
+        ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr)
+        : m_pPresetsHolder{pPresetsHolder}, m_pModbusProxyPtr{modbusProxyPtr}
     {
         m_reflowProcessData.regulatorData.dt = kSystickResolution.count();
     }
@@ -50,6 +46,15 @@ public:
                     pStrongThis->runnable(stoken);
                 }
             });
+    }
+
+    std::int32_t getTableTemperature() const noexcept
+    {
+        return m_lastModbusData.load().tableTemperature;
+    }
+    std::int32_t getSurroundingTemperature() const noexcept
+    {
+        return m_lastModbusData.load().surroundingTemperature;
     }
 
     void setRegulatorParams(const RegulatorParams& regulatorParams)
@@ -141,6 +146,12 @@ private:
         RelayRegulatorData regulatorData;
     };
 
+    struct LastModbusData
+    {
+        std::int32_t tableTemperature;
+        std::int32_t surroundingTemperature;
+    };
+
 private:
     void dispatchCommandsQueue(const std::stop_token& stoken)
     {
@@ -226,63 +237,10 @@ private:
             }
             break;
         }
-        processRelayRegulatorStep();
-    }
-
-    void processRelayRegulatorStep()
-    {
-        if (!m_reflowProcessData.activePresetState)
-        {
-            m_pRelayController->disable();
-            return;
-        }
-
-        auto currentTemperature = m_pTemperatureSensor->getRawData();
-        auto k = m_reflowProcessData.regulatorData.k;
-        auto dt = m_reflowProcessData.regulatorData.dt;
-        auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
-
-        float currentSignalValue{};
-        if (dt != 0 && k != 0)
-        {
-            currentSignalValue =
-                currentTemperature +
-                (currentTemperature - m_reflowProcessData.regulatorData.previousSignalValue) * k /
-                    dt;
-            m_reflowProcessData.regulatorData.previousSignalValue = currentSignalValue;
-        }
-        else
-        {
-            currentSignalValue = currentTemperature;
-        }
-
-        auto presetState = m_reflowProcessData.activePresetState;
-        const bool isUnderHysteresis =
-            currentSignalValue < (presetState->temperatureStep - hysteresis) / 2;
-
-        spdlog::info("Under:{}", (presetState->temperatureStep - hysteresis) / 2);
-
-        const bool isOverHysteresis =
-            currentSignalValue > (presetState->temperatureStep + hysteresis) / 2;
-        spdlog::info("Over: {}", (presetState->temperatureStep + hysteresis) / 2);
-        m_onRegulatorStageProcessing(RegulatorStageContext{
-            .dt = dt,
-            .k = k,
-            .currentSignalValue = currentSignalValue,
-            .isUnderHysteresis = isUnderHysteresis,
-            .isOverHysteresis = isOverHysteresis,
-        }
-
-        );
-        if (isUnderHysteresis)
-            m_pRelayController->enable();
-        else if (isOverHysteresis)
-            m_pRelayController->disable();
     }
 
     void disableHeating()
     {
-        m_pRelayController->disable();
     }
 
     void handleInitStep()
@@ -296,7 +254,8 @@ private:
     {
 
         auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
-        auto currentTemperature = m_pTemperatureSensor->getRawData();
+        auto currentTemperature =
+            m_pModbusProxyPtr->readRegister(ModbusProxyNs::Address::kSurroundingTemperatureAddr);
         auto presetExpectedTemperature = m_reflowProcessData.activePresetState->temperatureStep;
 
         const bool canCompletePreheatStage =
@@ -325,6 +284,8 @@ private:
     }
 
 private:
+    ModbusProxyNs::ModbusRequestsProxy::Ptr m_pModbusProxyPtr;
+
     using TNotifySignal = boost::signals2::signal<void()>;
     using TRegulatorSignal = boost::signals2::signal<void(const RegulatorStageContext&)>;
 
@@ -342,13 +303,9 @@ private:
     Reflow::Presets::Preset::Ptr m_pActivePreset;
     std::atomic<std::optional<std::size_t>> m_activePresetId;
 
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_pTemperatureSensor;
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_pSurroundingTemperatureSensor;
-
-    Reflow::Devices::Relay::RelayController::Ptr m_pRelayController;
-
     ReflowProcessData m_reflowProcessData;
     std::atomic<std::chrono::milliseconds> m_sysTickTime{};
+    std::atomic<LastModbusData> m_lastModbusData;
 };
 
 void ReflowProcessController::postCommand(Reflow::Commands::TCommandVariant commandContext)
@@ -408,17 +365,21 @@ boost::signals2::connection ReflowProcessController::subscribeOnRegulatorProcess
     return m_pImpl->subscribeOnProcessingRegulatorStage(observerCallback);
 }
 
+std::int32_t ReflowProcessController::getTableTemperature() const noexcept
+{
+    return m_pImpl->getTableTemperature();
+}
+std::int32_t ReflowProcessController::getSurroundingTemperature() const noexcept
+{
+    return m_pImpl->getSurroundingTemperature();
+}
+
 ReflowProcessController::ReflowProcessController(
     Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pThermocoupleData,
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pSurroundingSensor,
-    Reflow::Devices::Relay::RelayController::Ptr pRelayController)
-    : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(
-          pPresetsHolder,
-          pThermocoupleData,
-          pSurroundingSensor,
-          pRelayController)}
+    ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr)
+    : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(pPresetsHolder, modbusProxyPtr)}
 {
 }
+
 ReflowProcessController::~ReflowProcessController() = default;
 } // namespace Reflow::Controller

@@ -4,7 +4,7 @@
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
 
 #include <commands/commands_list.hpp>
-#include <platform_devices/platform_device_usings.hpp>
+#include <modbus_proxy/modbus_proxy.hpp>
 #include <presets/presets_holder.hpp>
 #include <boost/signals2.hpp>
 #include <optional>
@@ -24,9 +24,8 @@ class ReflowProcessController : public boost::intrusive_ref_counter<ReflowProces
 public:
     ReflowProcessController(
             Reflow::Presets::PresetsHolder::Ptr presetsHolder,
-            Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pThermocouple,
-            Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr pSurroundingTemperature,
-            Reflow::Devices::Relay::RelayController::Ptr pRelayController);
+            ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr
+    );
     ~ReflowProcessController();
 
 public:
@@ -34,6 +33,9 @@ public:
 
     void postCommand(Reflow::Commands::TCommandVariant contextVariant);
     bool isRunning() const;
+
+    std::int32_t getTableTemperature()const noexcept;
+    std::int32_t getSurroundingTemperature()const noexcept;
 
     void setRegulatorParams(const RegulatorParams& regulatorParams);
     RegulatorParams getRegulatorParams() const;

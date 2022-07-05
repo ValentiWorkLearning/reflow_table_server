@@ -8,7 +8,6 @@ add_library(
 target_link_libraries(
 	reflow_requests_handler
 	PRIVATE
-	devices_layer
 	presets_manager
 	commands_parser
 	reflow_controller
