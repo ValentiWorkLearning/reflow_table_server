@@ -108,6 +108,7 @@ add_subdirectory(presets)
 add_subdirectory(commands_parser)
 add_subdirectory(utils)
 add_subdirectory(reflow_controller)
+add_subdirectory(application)
 
 if(CROSS_BUILD_FOR_ARM AND BUILD_WITH_IIO_SUPPORT)
     add_subdirectory(libiio)
@@ -138,6 +139,7 @@ enable_testing()
 add_subdirectory(tests)
 
 install(TARGETS app_test_drogon_server DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/config.json"
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/server_config.json"
+              "${CMAKE_CURRENT_LIST_DIR}/configs/application_config.json"
   DESTINATION bin
   )

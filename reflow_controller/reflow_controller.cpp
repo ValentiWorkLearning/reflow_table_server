@@ -254,8 +254,12 @@ private:
     {
 
         auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
-        auto currentTemperature =
+        auto currentTemperatureOpt =
             m_pModbusProxyPtr->readRegister(ModbusProxyNs::Address::kSurroundingTemperatureAddr);
+        if(!currentTemperatureOpt)
+            return;
+        auto currentTemperature = currentTemperatureOpt.value();
+
         auto presetExpectedTemperature = m_reflowProcessData.activePresetState->temperatureStep;
 
         const bool canCompletePreheatStage =

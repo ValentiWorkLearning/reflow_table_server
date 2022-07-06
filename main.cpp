@@ -2,6 +2,7 @@
 #include <drogon/drogon.h>
 #include <memory>
 #include <common/executable_running_location.hpp>
+#include <application/application_config.hpp>
 
  using namespace drogon;
 
@@ -15,13 +16,15 @@
  int main(int argc, char *argv[])
 {
     dumpAvailableEndpoints();
+    const auto serverConfigPath{Utils::Executable::GetExecutableLocation(argv[0]) / "server_config.json"};
+    const auto applicationConfigPath{Utils::Executable::GetExecutableLocation(argv[0]) / "application_config.json"};
 
-    auto reflowRequestsHandler = std::make_shared<api::v1::ReflowController>();
+    auto pConfigHolder = std::make_shared<Application::ConfigNs::ConfigHolder>(applicationConfigPath);
+    auto reflowRequestsHandler = std::make_shared<api::v1::ReflowController>(pConfigHolder);
     reflowRequestsHandler->postInitCall();
 
     app().registerController(reflowRequestsHandler);
-    auto configPath{Utils::Executable::GetExecutableLocation(argv[0]) / "config.json"};
-    app().loadConfigFile(configPath.string()).run();
+    app().loadConfigFile(serverConfigPath.string()).run();
 
     return 0;
 }

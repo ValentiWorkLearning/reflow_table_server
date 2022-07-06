@@ -1,0 +1,7 @@
+{
+  "serial": {
+    "path": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "modbus_slave_address": 0
+  }
+}

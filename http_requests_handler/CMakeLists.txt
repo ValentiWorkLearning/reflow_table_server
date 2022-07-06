@@ -17,5 +17,7 @@ target_link_libraries(
 	fmt::fmt
 	spdlog::spdlog
 	nlohmann_json::nlohmann_json
+        PUBLIC
+        application
 )
 target_compile_features(reflow_requests_handler PUBLIC cxx_std_20)

@@ -4,14 +4,14 @@ target_include_directories(reflow_controller PUBLIC ${CMAKE_CURRENT_LIST_DIR}/in
 
 target_link_libraries(
 	reflow_controller
-	PUBLIC
+        PUBLIC
         modbus_proxy
+        commands_parser
+        presets_manager
+        utils
 	PUBLIC
 	fmt::fmt
 	Boost::boost
-	commands_parser
-	presets_manager
-	utils
 	spdlog::spdlog
 )
 

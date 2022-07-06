@@ -9,6 +9,9 @@ target_link_libraries(
         PRIVATE
         Boost::boost
         libmodbus::libmodbus
+        PUBLIC
+        tl::expected
+        application
 )
 
 target_include_directories(

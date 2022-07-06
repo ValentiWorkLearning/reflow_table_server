@@ -20,13 +20,13 @@ namespace api::v1
 class ReflowController::ReflowControllerImpl
 {
 public:
-    ReflowControllerImpl()
+    ReflowControllerImpl(std::shared_ptr<Application::ConfigNs::ConfigHolder> pConfigHolder)
         : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
         , m_reflowController{new Reflow::Controller::ReflowProcessController(
               m_presetsHolder,
-              new ModbusProxyNs::ModbusRequestsProxy())
-              }
+              new ModbusProxyNs::ModbusRequestsProxy(pConfigHolder))}
+        , m_pConfigHolder{pConfigHolder}
     {
     }
 
@@ -218,9 +218,12 @@ private:
     Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
     Reflow::Commands::CommandsParser::Ptr m_commandsParser;
     Reflow::Controller::ReflowProcessController::Ptr m_reflowController;
+    Application::ConfigNs::ConfigHolder::Ptr m_pConfigHolder;
 };
 
-ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<ReflowControllerImpl>()}
+ReflowController::ReflowController(
+    std::shared_ptr<Application::ConfigNs::ConfigHolder> pConfigHolder)
+    : m_pControllerImpl{std::make_unique<ReflowControllerImpl>(pConfigHolder)}
 {
 }
 
