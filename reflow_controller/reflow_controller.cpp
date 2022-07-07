@@ -108,6 +108,7 @@ public:
         while (!stoken.stop_requested())
         {
             dispatchCommandsQueue(stoken);
+            requestModbusData();
             processReflowStep();
             std::this_thread::sleep_for(kSystickResolution);
             if (m_isReflowRunning)
@@ -255,8 +256,8 @@ private:
 
         auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
         auto currentTemperatureOpt =
-            m_pModbusProxyPtr->readRegister(ModbusProxyNs::Address::kSurroundingTemperatureAddr);
-        if(!currentTemperatureOpt)
+            m_pModbusProxyPtr->readRegister(ModbusProxyNs::Address::kSurroundingTempAddr);
+        if (!currentTemperatureOpt)
             return;
         auto currentTemperature = currentTemperatureOpt.value();
 
@@ -285,6 +286,25 @@ private:
         {
             m_reflowProcessData.reflowStep = ReflowStage::kStageCompleted;
         }
+    }
+
+    void requestModbusData()
+    {
+        auto modbusData = m_pModbusProxyPtr->readRegisters(
+            ModbusProxyNs::Address::kSurroundingTempAddr,
+            ModbusProxyNs::Address::kModbusRegistersCount);
+        if (!modbusData)
+            return;
+
+        const auto& modbusObtainedData = modbusData.value();
+        LastModbusData actualData{};
+        actualData.surroundingTemperature = modbusObtainedData[0];
+        actualData.tableTemperature = modbusObtainedData[1];
+        m_lastModbusData = actualData;
+        spdlog::info(
+            "[reflow_controller] Got surrounding temperature: {} and table temperature: {}",
+            actualData.surroundingTemperature,
+            actualData.tableTemperature);
     }
 
 private:

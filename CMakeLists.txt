@@ -132,8 +132,8 @@ add_custom_command(
     TARGET app_test_drogon_server 
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_LIST_DIR}/configs/config.json
-    ${CMAKE_CURRENT_BINARY_DIR}/config.json
+    ${CMAKE_CURRENT_LIST_DIR}/configs/server_config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/server_config.json
 )
 enable_testing()
 add_subdirectory(tests)

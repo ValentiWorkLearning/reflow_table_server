@@ -1,5 +1,6 @@
 #include <modbus-rtu.h>
 #include <modbus_proxy/modbus_proxy.hpp>
+#include <spdlog/spdlog.h>
 
 template <auto DeleterFunction>
 using CustomDeleter = std::integral_constant<decltype(DeleterFunction), DeleterFunction>;
@@ -26,21 +27,81 @@ public:
         auto pActualConfig = pApplicationConfig->getActualConfig();
         m_pModbusHandle.reset(modbus_new_rtu(
             pActualConfig->serialDevicePath.c_str(), pActualConfig->modbusBaudrate, 'N', 8, 1));
-        modbus_set_response_timeout(m_pModbusHandle.get(), kSecondsTimeout, 0);
-        modbus_set_slave(m_pModbusHandle.get(), pActualConfig->modbusSlaveAddress);
+        if (!m_pModbusHandle)
+        {
+            spdlog::error(
+                "[modbus] Can't create RTU instance for {} interface",
+                pActualConfig->serialDevicePath);
+            return;
+        }
+        spdlog::info("[modbus]Created RTU modbus with settings");
+        spdlog::info("[modbus]Serial device path:{}", pActualConfig->serialDevicePath);
+        spdlog::info("[modbus]Serial baudrate:{}", pActualConfig->modbusBaudrate);
+        spdlog::info("[modbus]Modbus slave id:{}", pActualConfig->modbusSlaveAddress);
+
+        auto errCode = modbus_set_response_timeout(m_pModbusHandle.get(), kSecondsTimeout, 0);
+        if (isFailed(errCode))
+        {
+            spdlog::error(
+                "[modbus] Failed to set response timeout. Error is:{}", modbus_strerror(errCode));
+            return;
+        }
+
+        errCode = modbus_set_slave(m_pModbusHandle.get(), pActualConfig->modbusSlaveAddress);
+        if (isFailed(errCode))
+        {
+            spdlog::error(
+                "[modbus] Failed to set slave address. Error is:{}", modbus_strerror(errCode));
+            return;
+        }
+
+        errCode = modbus_connect(m_pModbusHandle.get());
+        if (isFailed(errCode))
+        {
+            spdlog::error(
+                "[modbus] Failed to establish connection. Error is:{}", modbus_strerror(errCode));
+            return;
+        }
+
+        spdlog::info("[modbus] Modbus client has connected successfully");
     }
 
 public:
-    tl::expected<std::int16_t, std::string_view> readRegister(std::uint16_t registerAddress)
+    std::optional<std::int16_t> readRegister(std::uint16_t registerAddress)
     {
-        return (std::int16_t{});
+        std::uint16_t registerData{};
+        constexpr int kNumRegisters = 1;
+        auto errCode = modbus_read_registers(
+            m_pModbusHandle.get(), registerAddress, kNumRegisters, &registerData);
+        if (errCode < 0)
+        {
+            spdlog::error("[modbus] readRegister failed. Error is:{}", modbus_strerror(errCode));
+            return std::nullopt;
+        }
+        return registerData;
     }
 
-    tl::expected<std::vector<std::int16_t>, std::string_view> readRegisters(
+    std::optional<std::vector<std::uint16_t>> readRegisters(
         std::uint16_t registerAddress,
         std::uint16_t registersCount)
     {
-        return std::vector<std::int16_t>{};
+        std::vector<std::uint16_t> registersData;
+        registersData.resize(registersCount);
+        auto errCode = modbus_read_registers(
+            m_pModbusHandle.get(), registerAddress, registersCount, registersData.data());
+        if (errCode < 0)
+        {
+            spdlog::error("[modbus] readRegisters failed. Error is:{}", modbus_strerror(errCode));
+            return std::nullopt;
+        }
+
+        return registersData;
+    }
+
+private:
+    bool isFailed(int errorCode) const noexcept
+    {
+        return errorCode < 0;
     }
 
 private:
@@ -58,13 +119,12 @@ ModbusRequestsProxy::ModbusRequestsProxy(
 
 ModbusRequestsProxy::~ModbusRequestsProxy() = default;
 
-tl::expected<std::int16_t, std::string_view> ModbusRequestsProxy::readRegister(
-    std::uint16_t registerAddress)
+std::optional<std::int16_t> ModbusRequestsProxy::readRegister(std::uint16_t registerAddress)
 {
     return m_pImpl->readRegister(registerAddress);
 }
 
-tl::expected<std::vector<std::int16_t>, std::string_view> ModbusRequestsProxy::readRegisters(
+std::optional<std::vector<std::uint16_t>> ModbusRequestsProxy::readRegisters(
     std::uint16_t registerAddress,
     std::uint16_t registersCount)
 {

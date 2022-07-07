@@ -10,7 +10,7 @@ target_link_libraries(
         Boost::boost
         libmodbus::libmodbus
         PUBLIC
-        tl::expected
+        spdlog::spdlog
         application
 )
 
