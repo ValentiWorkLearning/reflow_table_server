@@ -26,18 +26,22 @@ public:
     {
         auto pActualConfig = pApplicationConfig->getActualConfig();
         m_pModbusHandle.reset(modbus_new_rtu(
-            pActualConfig->serialDevicePath.c_str(), pActualConfig->modbusBaudrate, 'N', 8, 1));
+            pActualConfig->modbusConfig.serialDevicePath.c_str(),
+            pActualConfig->modbusConfig.modbusBaudrate,
+            'N',
+            8,
+            1));
         if (!m_pModbusHandle)
         {
             spdlog::error(
                 "[modbus] Can't create RTU instance for {} interface",
-                pActualConfig->serialDevicePath);
+                pActualConfig->modbusConfig.serialDevicePath);
             return;
         }
         spdlog::info("[modbus]Created RTU modbus with settings");
-        spdlog::info("[modbus]Serial device path:{}", pActualConfig->serialDevicePath);
-        spdlog::info("[modbus]Serial baudrate:{}", pActualConfig->modbusBaudrate);
-        spdlog::info("[modbus]Modbus slave id:{}", pActualConfig->modbusSlaveAddress);
+        spdlog::info("[modbus]Serial device path:{}", pActualConfig->modbusConfig.serialDevicePath);
+        spdlog::info("[modbus]Serial baudrate:{}", pActualConfig->modbusConfig.modbusBaudrate);
+        spdlog::info("[modbus]Modbus slave id:{}", pActualConfig->modbusConfig.modbusSlaveAddress);
 
         auto errCode = modbus_set_response_timeout(m_pModbusHandle.get(), kSecondsTimeout, 0);
         if (isFailed(errCode))
@@ -47,7 +51,18 @@ public:
             return;
         }
 
-        errCode = modbus_set_slave(m_pModbusHandle.get(), pActualConfig->modbusSlaveAddress);
+        if (pActualConfig->modbusConfig.isDebugMode)
+        {
+            modbus_set_debug(m_pModbusHandle.get(), TRUE);
+        }
+
+        modbus_set_error_recovery(
+            m_pModbusHandle.get(),
+            static_cast<modbus_error_recovery_mode>(
+                MODBUS_ERROR_RECOVERY_LINK | MODBUS_ERROR_RECOVERY_PROTOCOL));
+
+        errCode =
+            modbus_set_slave(m_pModbusHandle.get(), pActualConfig->modbusConfig.modbusSlaveAddress);
         if (isFailed(errCode))
         {
             spdlog::error(

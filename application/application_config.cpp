@@ -37,20 +37,21 @@ private:
             return createDefaultConfig();
 
         auto pConfig = std::make_shared<ConfigData>();
-        pConfig->serialDevicePath = jsonFile["serial"]["path"].get<std::string>();
-        pConfig->modbusBaudrate = jsonFile["serial"]["baudrate"].get<std::uint32_t>();
-        pConfig->modbusSlaveAddress =
-            jsonFile["serial"]["modbus_slave_address"].get<std::uint8_t>();
+        pConfig->modbusConfig.serialDevicePath = jsonFile["serial"]["path"].get<std::string>();
+        pConfig->modbusConfig.modbusBaudrate = jsonFile["serial"]["baudrate"].get<std::uint32_t>();
+        pConfig->modbusConfig.modbusSlaveAddress =
+            jsonFile["modbus"]["slave_address"].get<std::uint8_t>();
+        pConfig->modbusConfig.isDebugMode = jsonFile["modbus"]["enable_debug_mode"].get<bool>();
         return pConfig;
     }
 
     std::shared_ptr<ConfigData> createDefaultConfig()
     {
         auto pConfig = std::make_shared<ConfigData>();
-        pConfig->serialDevicePath = "/dev/ttyUSB0";
-        pConfig->modbusBaudrate = 9600;
-        pConfig->modbusSlaveAddress = 0;
-
+        pConfig->modbusConfig.serialDevicePath = "/dev/ttyUSB0";
+        pConfig->modbusConfig.modbusBaudrate = 9600;
+        pConfig->modbusConfig.modbusSlaveAddress = 0;
+        pConfig->modbusConfig.isDebugMode = false;
         return pConfig;
     }
 

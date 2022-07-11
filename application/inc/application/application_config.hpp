@@ -8,9 +8,14 @@ namespace Application::ConfigNs
 
 struct ConfigData
 {
-    std::string serialDevicePath;
-    std::uint32_t modbusBaudrate;
-    std::uint8_t modbusSlaveAddress;
+    struct ModbusConfigData
+    {
+        bool isDebugMode;
+        std::uint8_t modbusSlaveAddress;
+        std::string serialDevicePath;
+        std::uint32_t modbusBaudrate;
+    };
+    ModbusConfigData modbusConfig;
 };
 
 class ConfigHolder
