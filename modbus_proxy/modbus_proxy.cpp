@@ -88,7 +88,7 @@ public:
         constexpr int kNumRegisters = 1;
         auto errCode = modbus_read_registers(
             m_pModbusHandle.get(), registerAddress, kNumRegisters, &registerData);
-        if (errCode < 0)
+        if (isFailed(errCode))
         {
             spdlog::error("[modbus] readRegister failed. Error is:{}", modbus_strerror(errCode));
             return std::nullopt;
@@ -104,7 +104,7 @@ public:
         registersData.resize(registersCount);
         auto errCode = modbus_read_registers(
             m_pModbusHandle.get(), registerAddress, registersCount, registersData.data());
-        if (errCode < 0)
+        if (isFailed(errCode))
         {
             spdlog::error("[modbus] readRegisters failed. Error is:{}", modbus_strerror(errCode));
             return std::nullopt;
@@ -113,6 +113,23 @@ public:
         return registersData;
     }
 
+
+    void scheduleRegistersWrite(std::uint16_t registerAddress,const std::vector<std::uint16_t>& registers)
+    {
+        std::uint16_t numAttempts{kModbusAttempts};
+
+        auto errCode  = modbus_write_registers(m_pModbusHandle.get(), registerAddress, registers.size(),registers.data());
+        while(isFailed(errCode) && numAttempts)
+        {
+            errCode  = modbus_write_registers(m_pModbusHandle.get(), registerAddress,registers.size(), registers.data());
+            if(!isFailed(errCode))
+                return;
+
+            --numAttempts;
+        }
+
+        spdlog::error("[modbus] can't execute registers write. Error is:{}", modbus_strerror(errCode));
+    }
 private:
     bool isFailed(int errorCode) const noexcept
     {
@@ -120,6 +137,7 @@ private:
     }
 
 private:
+    static constexpr inline std::uint16_t kModbusAttempts = 3;
     static constexpr inline std::int32_t kSecondsTimeout = 5;
 
 private:
@@ -138,6 +156,12 @@ std::optional<std::int16_t> ModbusRequestsProxy::readRegister(std::uint16_t regi
 {
     return m_pImpl->readRegister(registerAddress);
 }
+
+void ModbusRequestsProxy::scheduleRegistersWrite(std::uint16_t registerAddress,const std::vector<std::uint16_t>& registers)
+{
+    return m_pImpl->scheduleRegistersWrite(registerAddress,registers);
+}
+
 
 std::optional<std::vector<std::uint16_t>> ModbusRequestsProxy::readRegisters(
     std::uint16_t registerAddress,

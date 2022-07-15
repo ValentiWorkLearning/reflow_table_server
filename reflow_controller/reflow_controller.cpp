@@ -23,7 +23,6 @@ public:
         ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr)
         : m_pPresetsHolder{pPresetsHolder}, m_pModbusProxyPtr{modbusProxyPtr}
     {
-        m_reflowProcessData.regulatorData.dt = kSystickResolution.count();
     }
 
 public:
@@ -59,15 +58,20 @@ public:
 
     void setRegulatorParams(const RegulatorParams& regulatorParams)
     {
-        m_reflowProcessData.regulatorData.k = regulatorParams.k;
-        m_reflowProcessData.regulatorData.hysteresis = regulatorParams.hysteresis;
+        constexpr auto kBeginAddress{ModbusProxyNs::Address::kFactorAddr};
+
+        std::vector<std::uint16_t> paramsData;
+        paramsData.resize(ModbusProxyNs::Address::kRegulatorParamLength);
+
+        paramsData[0] = static_cast<std::uint16_t>(regulatorParams.k* 10);
+        paramsData[1] = static_cast<std::uint16_t>(regulatorParams.hysteresis);
+
+        m_pModbusProxyPtr->scheduleRegistersWrite(kBeginAddress, paramsData);
     }
 
     RegulatorParams getRegulatorParams() const
     {
-        return RegulatorParams{
-            .k = m_reflowProcessData.regulatorData.k,
-            .hysteresis = m_reflowProcessData.regulatorData.hysteresis};
+        return m_lastModbusData.load().regulator;
     }
 
     std::chrono::milliseconds getSystickTime() const
@@ -134,23 +138,14 @@ private:
         Reflow::Presets::Preset::StageItem* activePresetState{nullptr};
         ReflowStage reflowStep{ReflowStage::kInitStep};
         std::chrono::milliseconds stageCompletionTimepoint;
-
-        struct RelayRegulatorData
-        {
-            float previousSignalValue;
-            std::uint32_t dt;
-            float k;
-            std::uint32_t hysteresis;
-            std::chrono::milliseconds previousTimepoint;
-        };
-
-        RelayRegulatorData regulatorData;
     };
 
     struct LastModbusData
     {
         std::int32_t tableTemperature;
         std::int32_t surroundingTemperature;
+
+        RegulatorParams regulator;
     };
 
 private:
@@ -254,7 +249,7 @@ private:
     void handlePreheatState()
     {
 
-        auto hysteresis = m_reflowProcessData.regulatorData.hysteresis;
+        auto hysteresis = m_lastModbusData.load().regulator.hysteresis;
         auto currentTemperatureOpt =
             m_pModbusProxyPtr->readRegister(ModbusProxyNs::Address::kSurroundingTempAddr);
         if (!currentTemperatureOpt)
@@ -300,11 +295,20 @@ private:
         LastModbusData actualData{};
         actualData.surroundingTemperature = modbusObtainedData[0];
         actualData.tableTemperature = modbusObtainedData[1];
+        actualData.regulator.hysteresis = modbusObtainedData[2];
+        actualData.regulator.k = modbusObtainedData[3];
+
         m_lastModbusData = actualData;
         spdlog::info(
-            "[reflow_controller] Got surrounding temperature: {} and table temperature: {}",
-            actualData.surroundingTemperature,
-            actualData.tableTemperature);
+            "[reflow_controller] Surrounding temperature: {}",
+            actualData.surroundingTemperature);
+        spdlog::info(
+                    "[reflow_controller] Table:{}",actualData.tableTemperature);
+        spdlog::info(
+                    "[reflow_controller] Regulator k:{}",actualData.regulator.k);
+
+        spdlog::info(
+                    "[reflow_controller] Regulator hysteresis:{}",actualData.regulator.hysteresis);
     }
 
 private:

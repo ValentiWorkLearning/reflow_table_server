@@ -25,6 +25,8 @@ public:
         std::uint16_t registerAddress,
         std::uint16_t registersCount);
 
+    void scheduleRegistersWrite(std::uint16_t registerAddress,const std::vector<std::uint16_t>& registers);
+
 private:
     class ModbusRequestsProxyImpl;
     std::unique_ptr<ModbusRequestsProxyImpl> m_pImpl;
