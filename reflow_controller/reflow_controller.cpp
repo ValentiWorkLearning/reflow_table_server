@@ -20,7 +20,7 @@ class ReflowProcessController::ReflowProcessControllerImpl
 public:
     ReflowProcessControllerImpl(
         Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-        ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr)
+        ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr)
         : m_pPresetsHolder{pPresetsHolder}, m_pModbusProxyPtr{modbusProxyPtr}
     {
     }
@@ -312,7 +312,7 @@ private:
     }
 
 private:
-    ModbusProxyNs::ModbusRequestsProxy::Ptr m_pModbusProxyPtr;
+    ModbusProxyNs::IModbusProxy::Ptr m_pModbusProxyPtr;
 
     using TNotifySignal = boost::signals2::signal<void()>;
     using TRegulatorSignal = boost::signals2::signal<void(const RegulatorStageContext&)>;
@@ -404,7 +404,7 @@ std::int32_t ReflowProcessController::getSurroundingTemperature() const noexcept
 
 ReflowProcessController::ReflowProcessController(
     Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-    ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr)
+    ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr)
     : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(pPresetsHolder, modbusProxyPtr)}
 {
 }

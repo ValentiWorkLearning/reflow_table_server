@@ -4,7 +4,7 @@
 #include <boost/smart_ptr/intrusive_ref_counter.hpp>
 
 #include <commands/commands_list.hpp>
-#include <modbus_proxy/modbus_proxy.hpp>
+#include <modbus_proxy/ih_modbus_proxy.hpp>
 #include <presets/presets_holder.hpp>
 #include <boost/signals2.hpp>
 #include <optional>
@@ -24,7 +24,7 @@ class ReflowProcessController : public boost::intrusive_ref_counter<ReflowProces
 public:
     ReflowProcessController(
             Reflow::Presets::PresetsHolder::Ptr presetsHolder,
-            ModbusProxyNs::ModbusRequestsProxy::Ptr modbusProxyPtr
+            ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr
     );
     ~ReflowProcessController();
 

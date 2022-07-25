@@ -1,7 +1,6 @@
 #pragma once
 #include <application/application_config.hpp>
-#include <boost/intrusive_ptr.hpp>
-#include <boost/smart_ptr/intrusive_ref_counter.hpp>
+#include <modbus_proxy/ih_modbus_proxy.hpp>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -9,15 +8,13 @@
 namespace ModbusProxyNs
 {
 
-class ModbusRequestsProxy : public boost::intrusive_ref_counter<ModbusRequestsProxy>
+class ModbusRequestsProxy : public IModbusProxy
 
 {
-public:
-    using Ptr = boost::intrusive_ptr<ModbusRequestsProxy>;
 
 public:
     ModbusRequestsProxy(const Application::ConfigNs::ConfigHolder::Ptr& pApplicationConfig);
-    ~ModbusRequestsProxy();
+    virtual ~ModbusRequestsProxy();
 
 public:
     std::optional<std::int16_t> readRegister(std::uint16_t registerAddress);
