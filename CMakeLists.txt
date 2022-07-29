@@ -7,19 +7,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(CROSS_BUILD_FOR_ARM ON)
-option(BUILD_WITH_IIO_SUPPORT OFF)
-
 if(CROSS_BUILD_FOR_ARM)
     set(CMAKE_CROSSCOMPILING TRUE)
-    if(BUILD_WITH_IIO_SUPPORT)
-        #LIBIIO OPTIONS
-        set(WITH_AIO CACHE BOOL OFF)
-        set(HAVE_DNS_SD CACHE BOOL OFF)
-        set(WITH_USB_BACKEND CACHE BOOL OFF)
-        set(WITH_XML_BACKEND CACHE BOOL OFF)
-        set(WITH_SERIAL_BACKEND CACHE BOOL OFF)
-        set(WITH_NETWORK_BACKEND CACHE BOOL OFF)
-    endif()
 endif()
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -137,6 +126,7 @@ add_custom_command(
 )
 enable_testing()
 add_subdirectory(tests)
+
 
 install(TARGETS app_test_drogon_server DESTINATION bin)
 install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/server_config.json"
