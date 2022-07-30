@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
+#include <executors/executor_creator.hpp>
+
 #include "modbus_proxy_mock.hpp"
 
 class ReflowControllerTesting : public ::testing::Test
@@ -12,8 +14,10 @@ protected:
     void SetUp() override
     {
         m_pPresetsHolder = new Reflow::Presets::PresetsHolder();
-        m_pModbusProxy = new ModbusProxyNs::ModbusProxyMock();
-        m_pReflowController = new Reflow::Controller::ReflowProcessController(m_pPresetsHolder,m_pModbusProxy);
+        m_pModbusProxy = std::make_shared<testing::NiceMock<ModbusProxyNs::ModbusProxyMock>>();
+        m_pExecutor = ExecutorNs::createSyncExecutor();
+
+        m_pReflowController = new Reflow::Controller::ReflowProcessController(m_pPresetsHolder,m_pModbusProxy,m_pExecutor);
         m_pReflowController->postInitCall();
 
         setupInitialPreset();
@@ -52,5 +56,6 @@ protected:
     std::size_t m_activePresetId;
     Reflow::Presets::PresetsHolder::Ptr m_pPresetsHolder;
     Reflow::Controller::ReflowProcessController::Ptr m_pReflowController;
-    ModbusProxyNs::IModbusProxy::Ptr m_pModbusProxy;
+    std::shared_ptr<::testing::NiceMock<ModbusProxyNs::ModbusProxyMock>> m_pModbusProxy;
+    ExecutorNs::ITimedExecutor::Ptr m_pExecutor;
 };

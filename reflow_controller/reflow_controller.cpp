@@ -20,8 +20,10 @@ class ReflowProcessController::ReflowProcessControllerImpl
 public:
     ReflowProcessControllerImpl(
         Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-        ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr)
-        : m_pPresetsHolder{pPresetsHolder}, m_pModbusProxyPtr{modbusProxyPtr}
+        ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr,
+        ExecutorNs::ITimedExecutor::Ptr executorPtr
+        )
+        : m_pPresetsHolder{pPresetsHolder}, m_pModbusProxyPtr{modbusProxyPtr},m_pExecutor{executorPtr}
     {
     }
 
@@ -38,14 +40,18 @@ public:
 
     void postInitCall()
     {
-        m_workerThread =
-            std::make_unique<std::jthread>([pWeakThis = weak_from_this()](std::stop_token stoken) {
+        m_pExecutor->start(
+            [pWeakThis = weak_from_this()]
+            {
                 if (auto pStrongThis = pWeakThis.lock())
                 {
-                    pStrongThis->runnable(stoken);
+                    pStrongThis->runnable();
                 }
-            });
+            },
+            kSystickResolution
+        );
     }
+
 
     std::int32_t getTableTemperature() const noexcept
     {
@@ -107,17 +113,14 @@ public:
     }
 
 public:
-    void runnable(const std::stop_token& stoken)
+    void runnable()
     {
-        while (!stoken.stop_requested())
-        {
-            dispatchCommandsQueue(stoken);
+
+            dispatchCommandsQueue();
             requestModbusData();
             processReflowStep();
-            std::this_thread::sleep_for(kSystickResolution);
             if (m_isReflowRunning)
-                m_sysTickTime.store(m_sysTickTime.load() + kSystickResolution);
-        }
+               m_sysTickTime.store(m_sysTickTime.load() + kSystickResolution);
     }
 
 private:
@@ -149,7 +152,7 @@ private:
     };
 
 private:
-    void dispatchCommandsQueue(const std::stop_token& stoken)
+    void dispatchCommandsQueue()
     {
         auto commandsVisitor = Overload{
             [this](Reflow::Commands::StartReflow) { handleReflowStart(); },
@@ -160,9 +163,6 @@ private:
 
         while (auto operation{m_requestsQueue.getOperation()})
         {
-            if (stoken.stop_requested())
-                return;
-
             std::visit(commandsVisitor, operation.value());
         }
     }
@@ -322,7 +322,8 @@ private:
     TNotifySignal m_onReflowStageCompleted;
     TRegulatorSignal m_onRegulatorStageProcessing;
 
-    std::unique_ptr<std::jthread> m_workerThread;
+
+    ExecutorNs::ITimedExecutor::Ptr m_pExecutor;
 
     std::atomic_bool m_isReflowRunning{false};
     RequestsQueue m_requestsQueue;
@@ -404,8 +405,10 @@ std::int32_t ReflowProcessController::getSurroundingTemperature() const noexcept
 
 ReflowProcessController::ReflowProcessController(
     Reflow::Presets::PresetsHolder::Ptr pPresetsHolder,
-    ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr)
-    : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(pPresetsHolder, modbusProxyPtr)}
+    ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr,
+    ExecutorNs::ITimedExecutor::Ptr executorPtr
+    )
+    : m_pImpl{std::make_shared<ReflowProcessControllerImpl>(pPresetsHolder, modbusProxyPtr,executorPtr)}
 {
 }
 

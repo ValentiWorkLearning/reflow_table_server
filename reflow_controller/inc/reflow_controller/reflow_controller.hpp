@@ -6,6 +6,8 @@
 #include <commands/commands_list.hpp>
 #include <modbus_proxy/ih_modbus_proxy.hpp>
 #include <presets/presets_holder.hpp>
+#include <executors/ih_executor.hpp>
+
 #include <boost/signals2.hpp>
 #include <optional>
 
@@ -24,7 +26,8 @@ class ReflowProcessController : public boost::intrusive_ref_counter<ReflowProces
 public:
     ReflowProcessController(
             Reflow::Presets::PresetsHolder::Ptr presetsHolder,
-            ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr
+            ModbusProxyNs::IModbusProxy::Ptr modbusProxyPtr,
+            ExecutorNs::ITimedExecutor::Ptr executorPtr
     );
     ~ReflowProcessController();
 

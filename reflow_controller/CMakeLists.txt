@@ -8,6 +8,7 @@ target_link_libraries(
         modbus_proxy
         commands_parser
         presets_manager
+        executors
         utils
 	PUBLIC
 	fmt::fmt

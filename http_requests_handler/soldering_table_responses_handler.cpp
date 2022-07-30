@@ -13,6 +13,7 @@
 
 #include <common/overloaded.hpp>
 #include <modbus_proxy/modbus_proxy.hpp>
+#include <executors/executor_creator.hpp>
 
 namespace api::v1
 {
@@ -25,7 +26,8 @@ public:
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
         , m_reflowController{new Reflow::Controller::ReflowProcessController(
               m_presetsHolder,
-              new ModbusProxyNs::ModbusRequestsProxy(pConfigHolder))}
+              std::make_shared<ModbusProxyNs::ModbusRequestsProxy>(pConfigHolder),
+              ExecutorNs::createAsyncExecutor())}
         , m_pConfigHolder{pConfigHolder}
     {
     }

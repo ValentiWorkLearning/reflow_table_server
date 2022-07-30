@@ -96,6 +96,7 @@ add_subdirectory(http_requests_handler)
 add_subdirectory(presets)
 add_subdirectory(commands_parser)
 add_subdirectory(utils)
+add_subdirectory(executor)
 add_subdirectory(reflow_controller)
 add_subdirectory(application)
 

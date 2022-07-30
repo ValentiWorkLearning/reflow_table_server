@@ -2,16 +2,15 @@
 #include <cstdint>
 #include <optional>
 #include <vector>
-#include <boost/intrusive_ptr.hpp>
-#include <boost/smart_ptr/intrusive_ref_counter.hpp>
+#include <memory>
 
 namespace ModbusProxyNs
 {
-class IModbusProxy : public boost::intrusive_ref_counter<IModbusProxy>{
+class IModbusProxy{
 public:
 
 
-    using Ptr = boost::intrusive_ptr<IModbusProxy>;
+    using Ptr = std::shared_ptr<IModbusProxy>;
 
 
 public:
