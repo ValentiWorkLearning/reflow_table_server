@@ -40,6 +40,7 @@ target_link_libraries(
     platform
     commands_parser
     reflow_controller
+    utils
     PRIVATE
     GTest::gtest
     GTest::gmock

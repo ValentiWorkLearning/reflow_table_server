@@ -4,6 +4,7 @@
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
 #include <executors/executor_creator.hpp>
+#include "fake_executor.hpp"
 
 #include "modbus_proxy_mock.hpp"
 
@@ -15,7 +16,7 @@ protected:
     {
         m_pPresetsHolder = new Reflow::Presets::PresetsHolder();
         m_pModbusProxy = std::make_shared<testing::NiceMock<ModbusProxyNs::ModbusProxyMock>>();
-        m_pExecutor = ExecutorNs::createSyncExecutor();
+        m_pExecutor = std::make_shared<TestingNs::TestFakeExecutor>();
 
         m_pReflowController = new Reflow::Controller::ReflowProcessController(m_pPresetsHolder,m_pModbusProxy,m_pExecutor);
         m_pReflowController->postInitCall();
@@ -57,5 +58,5 @@ protected:
     Reflow::Presets::PresetsHolder::Ptr m_pPresetsHolder;
     Reflow::Controller::ReflowProcessController::Ptr m_pReflowController;
     std::shared_ptr<::testing::NiceMock<ModbusProxyNs::ModbusProxyMock>> m_pModbusProxy;
-    ExecutorNs::ITimedExecutor::Ptr m_pExecutor;
+    std::shared_ptr<TestingNs::TestFakeExecutor> m_pExecutor;
 };
