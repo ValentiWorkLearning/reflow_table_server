@@ -100,10 +100,6 @@ add_subdirectory(executor)
 add_subdirectory(reflow_controller)
 add_subdirectory(application)
 
-if(CROSS_BUILD_FOR_ARM AND BUILD_WITH_IIO_SUPPORT)
-    add_subdirectory(libiio)
-endif()
-
 add_executable(app_test_drogon_server main.cpp)
 
 target_include_directories(
