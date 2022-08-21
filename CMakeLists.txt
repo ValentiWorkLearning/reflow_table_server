@@ -114,19 +114,41 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR  CMAKE_CXX_COMPILER_ID MATCHES "Clang
   target_compile_options( app_test_drogon_server PUBLIC -g2 )
 endif()
 
+
+enable_testing()
+add_subdirectory(tests)
+
+function(deployConfigFiles project_target_platform)
+
+
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/server_config.json"
+              "${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/application_config.json"
+  DESTINATION bin
+  )
+
+  add_custom_command(
+    TARGET app_test_drogon_server 
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/server_config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/server_config.json
+)
+
 add_custom_command(
     TARGET app_test_drogon_server 
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_LIST_DIR}/configs/server_config.json
-    ${CMAKE_CURRENT_BINARY_DIR}/server_config.json
+    ${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/application_config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/application_config.json
 )
-enable_testing()
-add_subdirectory(tests)
 
+endfunction()
 
 install(TARGETS app_test_drogon_server DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/server_config.json"
-              "${CMAKE_CURRENT_LIST_DIR}/configs/application_config.json"
-  DESTINATION bin
-  )
+
+
+if(WIN32)
+deployConfigFiles(windows)
+else()
+deployConfigFiles(linux)
+endif()
