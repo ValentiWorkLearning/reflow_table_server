@@ -37,18 +37,18 @@ private:
         pPreset->addStageItem(
                     Reflow::Presets::Preset::StageItem{.temperatureStep = 0, .stageDuration = 10s});
         pPreset->addStageItem(
-                    Reflow::Presets::Preset::StageItem{.temperatureStep = 60, .stageDuration = 120s}
+            Reflow::Presets::Preset::StageItem{.temperatureStep = 60, .stageDuration = 10s}
                     );
 
         pPreset->addStageItem(
-                    Reflow::Presets::Preset::StageItem{.temperatureStep = 180, .stageDuration = 10s}
+            Reflow::Presets::Preset::StageItem{.temperatureStep = 180, .stageDuration = 10s}
                     );
         pPreset->addStageItem(
-                    Reflow::Presets::Preset::StageItem{.temperatureStep = 180, .stageDuration = 100s}
+            Reflow::Presets::Preset::StageItem{.temperatureStep = 180, .stageDuration = 10s}
                     );
 
         pPreset->addStageItem(
-                    Reflow::Presets::Preset::StageItem{.temperatureStep = 0, .stageDuration = 100s}
+            Reflow::Presets::Preset::StageItem{.temperatureStep = 0, .stageDuration = 10s}
                     );
 
         m_activePresetId = presetId;
