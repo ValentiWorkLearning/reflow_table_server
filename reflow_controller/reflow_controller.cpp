@@ -60,19 +60,6 @@ public:
         return m_lastModbusData.load().surroundingTemperature;
     }
 
-    void setRegulatorParams(const RegulatorParams& regulatorParams)
-    {
-        constexpr auto kBeginAddress{ModbusProxyNs::Address::kFactorAddr};
-
-        std::vector<std::uint16_t> paramsData;
-        paramsData.resize(ModbusProxyNs::Address::kRegulatorParamLength);
-
-        paramsData[0] = static_cast<std::uint16_t>(regulatorParams.k * 10);
-        paramsData[1] = static_cast<std::uint16_t>(regulatorParams.hysteresis);
-
-        m_pModbusProxyPtr->scheduleRegistersWrite(kBeginAddress, paramsData);
-    }
-
     RegulatorParams getRegulatorParams() const
     {
         return m_lastModbusData.load().regulator;
@@ -86,28 +73,6 @@ public:
     std::optional<std::size_t> getActiveReflowPresetId() const
     {
         return m_activePresetId.load();
-    }
-
-    boost::signals2::connection subscribeOnReflowProcessStarted(
-        TObservableCallback observerCallback)
-    {
-        return m_onReflowProcessStarted.connect(observerCallback);
-    }
-    boost::signals2::connection subscribeOnReflowStageCompleted(
-        TObservableCallback observerCallback)
-    {
-        return m_onReflowStageCompleted.connect(observerCallback);
-    }
-    boost::signals2::connection subscribeOnReflowProcessCompleted(
-        TObservableCallback observerCallback)
-    {
-        return m_onReflowProcessCompleted.connect(observerCallback);
-    }
-
-    boost::signals2::connection subscribeOnProcessingRegulatorStage(
-        TRegulatorObserverCallback observerCallback)
-    {
-        return m_onRegulatorStageProcessing.connect(observerCallback);
     }
 
 public:
@@ -157,7 +122,11 @@ private:
             [this](Reflow::Commands::StopReflow) { handleReflowEnd(); },
             [this](Reflow::Commands::SelectPreset presetChoice) {
                 handlePresetSelection(presetChoice);
-            }};
+            },
+            [this](Reflow::Commands::SetRegulatorParams regulatorParamsCmd) {
+                setRegulatorParams(regulatorParamsCmd.params);
+            }
+        };
 
         while (auto operation{m_requestsQueue.getOperation()})
         {
@@ -174,7 +143,7 @@ private:
         }
         m_isReflowRunning = true;
 
-        m_onReflowProcessStarted();
+        spdlog::info("[reflow process] reflow process has been started");
     }
 
     void handleReflowEnd()
@@ -190,7 +159,6 @@ private:
         m_activePresetId = std::nullopt;
         m_isReflowRunning = false;
         m_sysTickTime.store(1ms);
-        m_onReflowProcessCompleted();
     }
 
     void handlePresetSelection(Reflow::Commands::SelectPreset choice)
@@ -339,16 +307,22 @@ private:
         }
     }
 
+
+    void setRegulatorParams(const RegulatorParams& regulatorParams)
+    {
+        constexpr auto kBeginAddress{ModbusProxyNs::Address::kFactorAddr};
+
+        std::vector<std::uint16_t> paramsData;
+        paramsData.resize(ModbusProxyNs::Address::kRegulatorParamLength);
+
+        paramsData[0] = static_cast<std::uint16_t>(regulatorParams.k);
+        paramsData[1] = static_cast<std::uint16_t>(regulatorParams.hysteresis);
+
+        m_pModbusProxyPtr->scheduleRegistersWrite(kBeginAddress, paramsData);
+    }
+
 private:
     ModbusProxyNs::IModbusProxy::Ptr m_pModbusProxyPtr;
-
-    using TNotifySignal = boost::signals2::signal<void()>;
-    using TRegulatorSignal = boost::signals2::signal<void(const RegulatorStageContext&)>;
-
-    TNotifySignal m_onReflowProcessStarted;
-    TNotifySignal m_onReflowProcessCompleted;
-    TNotifySignal m_onReflowStageCompleted;
-    TRegulatorSignal m_onRegulatorStageProcessing;
 
     ExecutorNs::ITimedExecutor::Ptr m_pExecutor;
 
@@ -379,11 +353,6 @@ bool ReflowProcessController::isRunning() const
     return m_pImpl->isRunning();
 }
 
-void ReflowProcessController::setRegulatorParams(const RegulatorParams& regulatorParams)
-{
-    return m_pImpl->setRegulatorParams(regulatorParams);
-}
-
 RegulatorParams ReflowProcessController::getRegulatorParams() const
 {
     return m_pImpl->getRegulatorParams();
@@ -399,27 +368,6 @@ std::optional<std::size_t> ReflowProcessController::getActiveReflowPresetId() co
     return m_pImpl->getActiveReflowPresetId();
 }
 
-boost::signals2::connection ReflowProcessController::subscribeOnReflowProcessStarted(
-    TObservableCallback observerCallback)
-{
-    return m_pImpl->subscribeOnReflowProcessStarted(observerCallback);
-}
-boost::signals2::connection ReflowProcessController::subscribeOnReflowStageCompleted(
-    TObservableCallback observerCallback)
-{
-    return m_pImpl->subscribeOnReflowStageCompleted(observerCallback);
-}
-boost::signals2::connection ReflowProcessController::subscribeOnReflowProcessCompleted(
-    TObservableCallback observerCallback)
-{
-    return m_pImpl->subscribeOnReflowProcessCompleted(observerCallback);
-}
-
-boost::signals2::connection ReflowProcessController::subscribeOnRegulatorProcessing(
-    TRegulatorObserverCallback observerCallback)
-{
-    return m_pImpl->subscribeOnProcessingRegulatorStage(observerCallback);
-}
 
 std::int32_t ReflowProcessController::getTableTemperature() const noexcept
 {

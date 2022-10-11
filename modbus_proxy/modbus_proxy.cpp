@@ -119,7 +119,8 @@ public:
         std::uint16_t numAttempts{kModbusAttempts};
 
         auto errCode  = modbus_write_registers(m_pModbusHandle.get(), registerAddress, registers.size(),registers.data());
-        while(isFailed(errCode) && numAttempts)
+        const bool isFailedWrite{isFailed(errCode)};
+        while( isFailedWrite && (numAttempts!=0))
         {
             errCode  = modbus_write_registers(m_pModbusHandle.get(), registerAddress,registers.size(), registers.data());
             if(!isFailed(errCode))

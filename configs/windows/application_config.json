@@ -1,6 +1,6 @@
 {
   "serial": {
-    "path": "COM3",
+    "path": "COM8",
     "baudrate": 9600
   },
   "modbus": {

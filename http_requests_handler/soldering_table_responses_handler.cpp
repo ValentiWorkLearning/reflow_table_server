@@ -36,22 +36,6 @@ public:
     void postInitCall()
     {
         m_reflowController->postInitCall();
-        m_reflowController->subscribeOnReflowProcessStarted(
-            [] { spdlog::info("Reflow process started!"); });
-        m_reflowController->subscribeOnReflowProcessCompleted(
-            [] { spdlog::info("Reflow process completed!"); });
-        m_reflowController->subscribeOnRegulatorProcessing(
-            [](const Reflow::Controller::ReflowProcessController::RegulatorStageContext&
-                   stageContext) {
-                spdlog::info(
-                    "Processing regulator stage: dt:{},k:{},currentSignal:{}, "
-                    "isUnderHysteresis:{}, isOverHysteresis:{}",
-                    stageContext.dt,
-                    stageContext.k,
-                    stageContext.currentSignalValue,
-                    stageContext.isUnderHysteresis,
-                    stageContext.isOverHysteresis);
-            });
     }
 
     void PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
@@ -210,7 +194,8 @@ public:
             }
             else
             {
-                m_reflowController->setRegulatorParams(regulatorData.value());
+                m_reflowController->postCommand(
+                    Reflow::Commands::SetRegulatorParams{regulatorData.value()});
             }
         }
         callback(resp);
