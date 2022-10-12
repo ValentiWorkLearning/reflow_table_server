@@ -1,0 +1,10 @@
+{
+  "serial": {
+    "path": "COM8",
+    "baudrate": 9600
+  },
+  "modbus": {
+    "slave_address": 1,
+    "enable_debug_mode": true
+  }
+}

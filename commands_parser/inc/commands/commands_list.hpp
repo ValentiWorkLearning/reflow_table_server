@@ -2,6 +2,7 @@
 #include <variant>
 #include <string>
 #include <tl/expected.hpp>
+#include <reflow_controller/reflow_controller_types.hpp>
 
 namespace Reflow::Commands
 {
@@ -19,7 +20,12 @@ struct SelectPreset
     std::size_t presetId;
 };
 
-using TCommandVariant = std::variant<StartReflow, StopReflow,SelectPreset>;
+struct SetRegulatorParams
+{
+    Reflow::Controller::RegulatorParams params;
+};
+
+using TCommandVariant = std::variant<StartReflow, StopReflow,SelectPreset,SetRegulatorParams>;
 using TCommandContext = tl::expected<TCommandVariant,std::string_view>;
 
 } // namespace Reflow::Commands

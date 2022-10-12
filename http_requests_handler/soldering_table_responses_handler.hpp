@@ -3,6 +3,7 @@
 using namespace drogon;
 
 #include "drogon/HttpController.h"
+#include <application/application_config.hpp>
 
 namespace api::v1
 {
@@ -10,7 +11,7 @@ class ReflowController : public drogon::HttpController<ReflowController, false>
 {
 
 public:
-    ReflowController();
+    ReflowController(std::shared_ptr<Application::ConfigNs::ConfigHolder> pConfigHolder);
     ~ReflowController();
 
 public:

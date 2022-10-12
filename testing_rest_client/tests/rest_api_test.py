@@ -11,7 +11,7 @@ class TestReflowApi(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.base_url = 'http://192.168.0.116:8086/api/v1/ReflowController/'
+        cls.base_url = 'http://localhost:8086/api/v1/ReflowController/'
 
     def test_ping_pong(self):
         response = requests.get(urllib.parse.urljoin(self.base_url,'ping-pong'))

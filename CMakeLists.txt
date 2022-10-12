@@ -7,19 +7,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(CROSS_BUILD_FOR_ARM ON)
-option(BUILD_WITH_IIO_SUPPORT OFF)
-
 if(CROSS_BUILD_FOR_ARM)
     set(CMAKE_CROSSCOMPILING TRUE)
-    if(BUILD_WITH_IIO_SUPPORT)
-        #LIBIIO OPTIONS
-        set(WITH_AIO CACHE BOOL OFF)
-        set(HAVE_DNS_SD CACHE BOOL OFF)
-        set(WITH_USB_BACKEND CACHE BOOL OFF)
-        set(WITH_XML_BACKEND CACHE BOOL OFF)
-        set(WITH_SERIAL_BACKEND CACHE BOOL OFF)
-        set(WITH_NETWORK_BACKEND CACHE BOOL OFF)
-    endif()
 endif()
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -102,16 +91,14 @@ if(CROSS_BUILD_FOR_ARM)
 endif()
 
 add_subdirectory(platform)
-add_subdirectory(devices_layer)
+add_subdirectory(modbus_proxy)
 add_subdirectory(http_requests_handler)
 add_subdirectory(presets)
 add_subdirectory(commands_parser)
-add_subdirectory(reflow_controller)
 add_subdirectory(utils)
-
-if(CROSS_BUILD_FOR_ARM AND BUILD_WITH_IIO_SUPPORT)
-    add_subdirectory(libiio)
-endif()
+add_subdirectory(executor)
+add_subdirectory(reflow_controller)
+add_subdirectory(application)
 
 add_executable(app_test_drogon_server main.cpp)
 
@@ -127,17 +114,41 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR  CMAKE_CXX_COMPILER_ID MATCHES "Clang
   target_compile_options( app_test_drogon_server PUBLIC -g2 )
 endif()
 
+
+enable_testing()
+add_subdirectory(tests)
+
+function(deployConfigFiles project_target_platform)
+
+
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/server_config.json"
+              "${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/application_config.json"
+  DESTINATION bin
+  )
+
+  add_custom_command(
+    TARGET app_test_drogon_server 
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/server_config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/server_config.json
+)
+
 add_custom_command(
     TARGET app_test_drogon_server 
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_LIST_DIR}/configs/config.json
-    ${CMAKE_CURRENT_BINARY_DIR}/config.json
+    ${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/application_config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/application_config.json
 )
-enable_testing()
-add_subdirectory(tests)
+
+endfunction()
 
 install(TARGETS app_test_drogon_server DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/config.json"
-  DESTINATION bin
-  )
+
+
+if(WIN32)
+deployConfigFiles(windows)
+else()
+deployConfigFiles(linux)
+endif()

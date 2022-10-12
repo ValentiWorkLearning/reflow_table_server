@@ -4,19 +4,21 @@ target_include_directories(reflow_controller PUBLIC ${CMAKE_CURRENT_LIST_DIR}/in
 
 target_link_libraries(
 	reflow_controller
-	PUBLIC
-	devices_layer
+        PUBLIC
+        modbus_proxy
+        commands_parser
+        presets_manager
+        executors
+        utils
 	PUBLIC
 	fmt::fmt
 	Boost::boost
-	commands_parser
-	presets_manager
-	utils
 	spdlog::spdlog
 )
 
 target_compile_features(reflow_controller PUBLIC cxx_std_20)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-	target_link_options(reflow_controller PUBLIC -latomic)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_link_libraries(reflow_controller PUBLIC "-latomic")
 endif()

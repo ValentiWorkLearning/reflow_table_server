@@ -37,3 +37,7 @@ Firmware/build_firmware
 .vs/
 #Ignore kicad backups
 *.sch-bak
+
+# ignore testing artifacts
+testing_rest_client/tests/.vscode/
+testing_rest_client/tests/__pycache__/

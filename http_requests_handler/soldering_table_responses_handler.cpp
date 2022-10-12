@@ -2,7 +2,6 @@
 
 #include "request_utils.hpp"
 #include <commands/commands_parser.hpp>
-#include <platform_devices/platform_device_usings.hpp>
 #include <presets/presets_holder.hpp>
 #include <reflow_controller/reflow_controller.hpp>
 
@@ -13,6 +12,8 @@
 #include <spdlog/spdlog.h>
 
 #include <common/overloaded.hpp>
+#include <modbus_proxy/modbus_proxy.hpp>
+#include <executors/executor_creator.hpp>
 
 namespace api::v1
 {
@@ -20,17 +21,14 @@ namespace api::v1
 class ReflowController::ReflowControllerImpl
 {
 public:
-    ReflowControllerImpl()
-        : m_thermocoupleDataProvider{Reflow::Devices::Platform::getPlatformThermocoupleSensor()}
-        , m_surroundingTemperatureSensor{Reflow::Devices::Platform::
-                                             getPlatformSurroundingTemperatureSensor()}
-        , m_presetsHolder{new Reflow::Presets::PresetsHolder()}
+    ReflowControllerImpl(std::shared_ptr<Application::ConfigNs::ConfigHolder> pConfigHolder)
+        : m_presetsHolder{new Reflow::Presets::PresetsHolder()}
         , m_commandsParser{new Reflow::Commands::CommandsParser()}
         , m_reflowController{new Reflow::Controller::ReflowProcessController(
               m_presetsHolder,
-              m_thermocoupleDataProvider,
-              m_surroundingTemperatureSensor,
-              Reflow::Devices::Platform::getPlatformRelayController())}
+              std::make_shared<ModbusProxyNs::ModbusRequestsProxy>(pConfigHolder),
+              ExecutorNs::createAsyncExecutor())}
+        , m_pConfigHolder{pConfigHolder}
     {
     }
 
@@ -38,22 +36,6 @@ public:
     void postInitCall()
     {
         m_reflowController->postInitCall();
-        m_reflowController->subscribeOnReflowProcessStarted(
-            [] { spdlog::info("Reflow process started!"); });
-        m_reflowController->subscribeOnReflowProcessCompleted(
-            [] { spdlog::info("Reflow process completed!"); });
-        m_reflowController->subscribeOnRegulatorProcessing(
-            [](const Reflow::Controller::ReflowProcessController::RegulatorStageContext&
-                   stageContext) {
-                spdlog::info(
-                    "Processing regulator stage: dt:{},k:{},currentSignal:{}, "
-                    "isUnderHysteresis:{}, isOverHysteresis:{}",
-                    stageContext.dt,
-                    stageContext.k,
-                    stageContext.currentSignalValue,
-                    stageContext.isUnderHysteresis,
-                    stageContext.isOverHysteresis);
-            });
     }
 
     void PingPong(const HttpRequestPtr& req, THttpResponseCallback&& callback)
@@ -150,8 +132,8 @@ public:
     void GetStats(const HttpRequestPtr& req, THttpResponseCallback&& callback)
     {
         Json::Value ret;
-        ret["temperature-data"] = m_thermocoupleDataProvider->getRawData();
-        ret["surrounding-temperature"] = m_surroundingTemperatureSensor->getRawData();
+        ret["temperature-data"] = m_reflowController->getTableTemperature();
+        ret["surrounding-temperature"] = m_reflowController->getSurroundingTemperature();
         ret["system-time"] =
             std::chrono::duration_cast<std::chrono::seconds>(m_reflowController->getSystickTime())
                 .count();
@@ -212,21 +194,23 @@ public:
             }
             else
             {
-                m_reflowController->setRegulatorParams(regulatorData.value());
+                m_reflowController->postCommand(
+                    Reflow::Commands::SetRegulatorParams{regulatorData.value()});
             }
         }
         callback(resp);
     }
 
 private:
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_thermocoupleDataProvider;
-    Reflow::Devices::Temperature::ITemperatureDataProvider::Ptr m_surroundingTemperatureSensor;
     Reflow::Presets::PresetsHolder::Ptr m_presetsHolder;
     Reflow::Commands::CommandsParser::Ptr m_commandsParser;
     Reflow::Controller::ReflowProcessController::Ptr m_reflowController;
+    Application::ConfigNs::ConfigHolder::Ptr m_pConfigHolder;
 };
 
-ReflowController::ReflowController() : m_pControllerImpl{std::make_unique<ReflowControllerImpl>()}
+ReflowController::ReflowController(
+    std::shared_ptr<Application::ConfigNs::ConfigHolder> pConfigHolder)
+    : m_pControllerImpl{std::make_unique<ReflowControllerImpl>(pConfigHolder)}
 {
 }
 
