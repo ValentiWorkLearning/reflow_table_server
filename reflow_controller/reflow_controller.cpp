@@ -141,7 +141,9 @@ private:
             spdlog::error("Can't get the active soldering preset");
             return;
         }
+        m_reflowProcessData.reflowStep = ReflowStage::kInitStep;
         m_isReflowRunning = true;
+
 
         spdlog::info("[reflow process] reflow process has been started");
     }
@@ -155,6 +157,7 @@ private:
 
         disableHeating();
         m_reflowProcessData.activeStageIndex = 0;
+        m_reflowProcessData.reflowStep = ReflowStage::kStageCompleted;
         m_pActivePreset.reset();
         m_activePresetId = std::nullopt;
         m_isReflowRunning = false;
