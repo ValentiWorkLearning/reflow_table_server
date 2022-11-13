@@ -118,15 +118,15 @@ endif()
 enable_testing()
 add_subdirectory(tests)
 
-function(deployConfigFiles project_target_platform)
+function(deployConfigFiles project_target_platform destination_dir)
 
 
 install(FILES "${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/server_config.json"
               "${CMAKE_CURRENT_LIST_DIR}/configs/${project_target_platform}/application_config.json"
-  DESTINATION bin
-  )
+        DESTINATION ${destination_dir}
+)
 
-  add_custom_command(
+add_custom_command(
     TARGET app_test_drogon_server 
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -144,11 +144,13 @@ add_custom_command(
 
 endfunction()
 
-install(TARGETS app_test_drogon_server DESTINATION bin)
-
-
 if(WIN32)
-deployConfigFiles(windows)
+deployConfigFiles(windows bin)
+install(TARGETS app_test_drogon_server DESTINATION bin )
 else()
-deployConfigFiles(linux)
+deployConfigFiles(linux "/opt/appl/oven/")
+    if(CROSS_BUILD_FOR_ARM)
+        install(TARGETS app_test_drogon_server DESTINATION "/opt/appl/oven/")
+    endif()
 endif()
+
